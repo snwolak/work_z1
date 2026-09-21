@@ -16,7 +16,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Zod (separate schema per step)
 - nuqs (table pagination in URL)
 
-## Rules
+## Rules (mandatory)
 
 1. Follow the task requirements strictly.
 2. After every change, perform a self-review and fix issues before continuing.
