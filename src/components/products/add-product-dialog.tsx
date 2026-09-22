@@ -8,13 +8,29 @@ import {
   PRODUCT_BASIC_INFO_FORM_ID,
   ProductBasicInfoForm,
 } from "@/components/products/product-basic-info-form";
+import {
+  PRODUCT_PRICE_FORM_ID,
+  ProductPriceForm,
+} from "@/components/products/product-price-form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { title: "Informacje", description: "Dane podstawowe" },
-  { title: "Cena", description: "Dane cenowe" },
-  { title: "Dostępność", description: "Stany magazynowe" },
+  {
+    title: "Informacje",
+    description: "Dane podstawowe",
+    formId: PRODUCT_BASIC_INFO_FORM_ID,
+  },
+  {
+    title: "Cena",
+    description: "Dane cenowe",
+    formId: PRODUCT_PRICE_FORM_ID,
+  },
+  {
+    title: "Dostępność",
+    description: "Stany magazynowe",
+    formId: null,
+  },
 ] as const;
 
 type AddProductDialogProps = {
@@ -29,6 +45,7 @@ export function AddProductDialog({
   const [step, setStep] = useState(0);
   const isFirstStep = step === 0;
   const isLastStep = step === STEPS.length - 1;
+  const formId = STEPS[step]?.formId ?? null;
 
   function handleOpenChange(nextOpen: boolean) {
     onOpenChange(nextOpen);
@@ -130,7 +147,11 @@ export function AddProductDialog({
               <ProductBasicInfoForm onSubmit={() => setStep(1)} />
             </div>
 
-            {step !== 0 ? <div className="min-h-[240px]" /> : null}
+            <div className={cn(step !== 1 && "hidden")}>
+              <ProductPriceForm onSubmit={() => setStep(2)} />
+            </div>
+
+            {isLastStep ? <div className="min-h-[240px]" /> : null}
           </div>
 
           <div
@@ -152,11 +173,11 @@ export function AddProductDialog({
             )}
 
             <Button
-              type={isFirstStep ? "submit" : "button"}
-              form={isFirstStep ? PRODUCT_BASIC_INFO_FORM_ID : undefined}
+              type={formId ? "submit" : "button"}
+              form={formId ?? undefined}
               className="h-9 gap-1.5 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               onClick={() => {
-                if (!isFirstStep && !isLastStep) {
+                if (!formId && !isLastStep) {
                   setStep(step + 1);
                 }
               }}

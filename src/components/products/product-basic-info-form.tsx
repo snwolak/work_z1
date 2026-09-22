@@ -41,6 +41,16 @@ const defaultValues: ProductBasicInfo = {
   features: [],
 };
 
+const MANUFACTURER_ITEMS = PRODUCT_MANUFACTURERS.map((value) => ({
+  value,
+  label: PRODUCT_MANUFACTURER_LABELS[value],
+}));
+
+const CATEGORY_ITEMS = PRODUCT_CATEGORIES.map((value) => ({
+  value,
+  label: PRODUCT_CATEGORY_LABELS[value],
+}));
+
 type ProductBasicInfoFormProps = {
   onSubmit: (value: ProductBasicInfo) => void;
 };
@@ -144,6 +154,7 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Producent</FieldLabel>
                   <Select
+                    items={MANUFACTURER_ITEMS}
                     value={field.state.value || null}
                     onValueChange={(value) => {
                       if (value) field.handleChange(value);
@@ -180,6 +191,7 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Kategoria</FieldLabel>
                   <Select
+                    items={CATEGORY_ITEMS}
                     value={field.state.value || null}
                     onValueChange={(value) => {
                       if (value) field.handleChange(value);
