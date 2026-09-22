@@ -17,7 +17,14 @@ import {
   ProductPriceForm,
 } from "@/components/products/product-price-form";
 import { Button } from "@/components/ui/button";
+import type {
+  Product,
+  ProductAvailability,
+  ProductBasicInfo,
+  ProductPrice,
+} from "@/lib/product";
 import { cn } from "@/lib/utils";
+import { useProductStore } from "@/store/product-store";
 
 const STEPS = [
   {
@@ -40,13 +47,22 @@ const STEPS = [
 type AddProductDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onProductAdded?: () => void;
 };
+
+function createProductId() {
+  return `prd_${crypto.randomUUID()}`;
+}
 
 export function AddProductDialog({
   open,
   onOpenChange,
+  onProductAdded,
 }: AddProductDialogProps) {
+  const addProduct = useProductStore((state) => state.addProduct);
   const [step, setStep] = useState(0);
+  const [basicInfo, setBasicInfo] = useState<ProductBasicInfo | null>(null);
+  const [price, setPrice] = useState<ProductPrice | null>(null);
   const isFirstStep = step === 0;
   const isLastStep = step === STEPS.length - 1;
   const formId = STEPS[step]?.formId ?? null;
@@ -56,7 +72,26 @@ export function AddProductDialog({
 
     if (!nextOpen) {
       setStep(0);
+      setBasicInfo(null);
+      setPrice(null);
     }
+  }
+
+  function handleAvailabilitySubmit(availability: ProductAvailability) {
+    if (!basicInfo || !price) {
+      return;
+    }
+
+    const product: Product = {
+      id: createProductId(),
+      ...basicInfo,
+      ...price,
+      ...availability,
+    };
+
+    addProduct(product);
+    onProductAdded?.();
+    handleOpenChange(false);
   }
 
   return (
@@ -148,17 +183,25 @@ export function AddProductDialog({
 
           <div className="flex-1 overflow-y-auto px-4 py-5">
             <div className={cn(step !== 0 && "hidden")}>
-              <ProductBasicInfoForm onSubmit={() => setStep(1)} />
+              <ProductBasicInfoForm
+                onSubmit={(value) => {
+                  setBasicInfo(value);
+                  setStep(1);
+                }}
+              />
             </div>
 
             <div className={cn(step !== 1 && "hidden")}>
-              <ProductPriceForm onSubmit={() => setStep(2)} />
+              <ProductPriceForm
+                onSubmit={(value) => {
+                  setPrice(value);
+                  setStep(2);
+                }}
+              />
             </div>
 
             <div className={cn(step !== 2 && "hidden")}>
-              <ProductAvailabilityForm
-                onSubmit={() => handleOpenChange(false)}
-              />
+              <ProductAvailabilityForm onSubmit={handleAvailabilitySubmit} />
             </div>
           </div>
 

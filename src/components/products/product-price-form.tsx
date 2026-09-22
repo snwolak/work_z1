@@ -62,15 +62,19 @@ function parseAmount(value: string) {
 }
 
 type ProductPriceFormProps = {
-  onSubmit: () => void;
+  onSubmit: (value: ProductPrice) => void;
 };
 
 export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
   const form = useForm({
     defaultValues,
     validators: { onSubmit: productPriceSchema as unknown as never },
-    onSubmit: () => {
-      onSubmit();
+    onSubmit: ({ value }) => {
+      const parsed = productPriceSchema.safeParse(value);
+
+      if (parsed.success) {
+        onSubmit(parsed.data);
+      }
     },
   });
   const lastEdited = useRef<"netPrice" | "grossPrice">("netPrice");

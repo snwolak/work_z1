@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { productAvailabilitySchema } from "@/lib/product";
+import type { ProductAvailability } from "@/lib/product";
 
 export const PRODUCT_AVAILABILITY_FORM_ID = "product-availability-form";
 
@@ -32,7 +33,7 @@ const defaultValues: ProductAvailabilityFormValues = {
 };
 
 type ProductAvailabilityFormProps = {
-  onSubmit: () => void;
+  onSubmit: (value: ProductAvailability) => void;
 };
 
 export function ProductAvailabilityForm({
@@ -43,8 +44,12 @@ export function ProductAvailabilityForm({
     validators: {
       onSubmit: productAvailabilitySchema as unknown as never,
     },
-    onSubmit: () => {
-      onSubmit();
+    onSubmit: ({ value }) => {
+      const parsed = productAvailabilitySchema.safeParse(value);
+
+      if (parsed.success) {
+        onSubmit(parsed.data);
+      }
     },
   });
 

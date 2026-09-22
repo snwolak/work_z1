@@ -144,6 +144,10 @@ export function ProductTable() {
     void setPage(Math.min(Math.max(nextPage, 1), pageCount));
   }
 
+  function handleProductAdded() {
+    void setPage(Math.max(1, Math.ceil((products.length + 1) / PAGE_SIZE)));
+  }
+
   return (
     <section className="mx-auto flex w-full max-w-[1240px] flex-col gap-4 px-4 py-6 sm:px-6 md:gap-6 lg:px-0 lg:py-[50px]">
       <header className="flex items-center justify-between gap-4">
@@ -239,6 +243,7 @@ export function ProductTable() {
       <AddProductDialog
         open={isAddProductOpen}
         onOpenChange={setIsAddProductOpen}
+        onProductAdded={handleProductAdded}
       />
     </section>
   );
