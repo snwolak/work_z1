@@ -76,7 +76,7 @@ function ProductStatusBadge({ isAvailable }: { isAvailable: boolean }) {
       className={cn(
         "inline-flex h-5 items-center rounded-full px-2 text-xs font-medium",
         isAvailable
-          ? "bg-green-50 text-green-600"
+          ? "bg-[#E8F6ED] text-[#16A34A]"
           : "bg-destructive/10 text-destructive",
       )}
     >
@@ -87,15 +87,12 @@ function ProductStatusBadge({ isAvailable }: { isAvailable: boolean }) {
 
 function ProductCards({ products }: { products: Product[] }) {
   return (
-    <div className="grid gap-3 md:hidden">
+    <div className="grid gap-2 md:hidden">
       {products.map((product) => (
-        <article
-          key={product.id}
-          className="rounded-lg border bg-card p-4 shadow-xs"
-        >
-          <div className="flex items-start justify-between gap-3">
+        <article key={product.id} className="rounded-[12px] border bg-card p-3">
+          <div className="flex items-center justify-between gap-2.5">
             <div className="min-w-0">
-              <h2 className="truncate text-sm font-medium text-foreground">
+              <h2 className="truncate text-base font-medium text-foreground">
                 {product.name}
               </h2>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -105,22 +102,24 @@ function ProductCards({ products }: { products: Product[] }) {
             <ProductStatusBadge isAvailable={product.isAvailable} />
           </div>
 
-          <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+          <dl className="mt-2 grid grid-cols-3 gap-1 rounded-[9px] bg-muted p-3">
             <div>
               <dt className="text-xs text-muted-foreground">Kategoria</dt>
-              <dd className="mt-1 text-foreground">
+              <dd className="mt-1 text-sm text-foreground">
                 {getCategoryLabel(product.category)}
               </dd>
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">Cena brutto</dt>
-              <dd className="mt-1 font-medium text-foreground">
+              <dd className="mt-1 text-sm font-medium text-foreground">
                 {formatPrice(product)}
               </dd>
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">Magazyn</dt>
-              <dd className="mt-1 text-foreground">{getStockLabel(product)}</dd>
+              <dd className="mt-1 text-sm text-foreground">
+                {getStockLabel(product)}
+              </dd>
             </div>
           </dl>
         </article>
@@ -143,8 +142,8 @@ export function ProductTable() {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-[1240px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-0 lg:py-[50px]">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section className="mx-auto flex w-full max-w-[1240px] flex-col gap-4 px-4 py-6 sm:px-6 md:gap-6 lg:px-0 lg:py-[50px]">
+      <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold leading-7 text-foreground">
             Produkty
@@ -169,7 +168,7 @@ export function ProductTable() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] border-collapse text-left">
             <thead>
-              <tr className="border-b bg-muted">
+              <tr className="border-b bg-[#F9FAFB]">
                 {columns.map((column) => (
                   <th
                     key={column.key}
@@ -216,6 +215,16 @@ export function ProductTable() {
         </div>
 
         <ProductTablePagination
+          page={safePage}
+          pageCount={pageCount}
+          totalCount={products.length}
+          onPageChange={handlePageChange}
+        />
+      </div>
+
+      <div className="mt-2 md:hidden">
+        <ProductTablePagination
+          variant="stacked"
           page={safePage}
           pageCount={pageCount}
           totalCount={products.length}
