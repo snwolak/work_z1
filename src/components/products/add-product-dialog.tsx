@@ -17,6 +17,7 @@ import {
   ProductPriceForm,
 } from "@/components/products/product-price-form";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import type {
   Product,
   ProductAvailability,
@@ -90,6 +91,7 @@ export function AddProductDialog({
     };
 
     addProduct(product);
+    toast.add({ type: "success", title: "Produkt został dodany" });
     onProductAdded?.();
     handleOpenChange(false);
   }
