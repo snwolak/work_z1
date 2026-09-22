@@ -4,6 +4,10 @@ import { Fragment, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 
+import {
+  PRODUCT_BASIC_INFO_FORM_ID,
+  ProductBasicInfoForm,
+} from "@/components/products/product-basic-info-form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -122,7 +126,11 @@ export function AddProductDialog({
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-5">
-            <div className="min-h-[240px]" />
+            <div className={cn(step !== 0 && "hidden")}>
+              <ProductBasicInfoForm onSubmit={() => setStep(1)} />
+            </div>
+
+            {step !== 0 ? <div className="min-h-[240px]" /> : null}
           </div>
 
           <div
@@ -144,10 +152,11 @@ export function AddProductDialog({
             )}
 
             <Button
-              type="button"
+              type={isFirstStep ? "submit" : "button"}
+              form={isFirstStep ? PRODUCT_BASIC_INFO_FORM_ID : undefined}
               className="h-9 gap-1.5 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               onClick={() => {
-                if (!isLastStep) {
+                if (!isFirstStep && !isLastStep) {
                   setStep(step + 1);
                 }
               }}
