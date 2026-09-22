@@ -21,6 +21,7 @@ export const PRODUCT_AVAILABILITY_FORM_ID = "product-availability-form";
 type ProductAvailabilityFormValues = {
   isAvailable: boolean;
   isLimited: boolean;
+  stockQuantity: string;
   minOrderQuantity: string;
   maxOrderQuantity: string;
 };
@@ -28,6 +29,7 @@ type ProductAvailabilityFormValues = {
 const defaultValues: ProductAvailabilityFormValues = {
   isAvailable: true,
   isLimited: false,
+  stockQuantity: "",
   minOrderQuantity: "",
   maxOrderQuantity: "",
 };
@@ -90,7 +92,13 @@ export function ProductAvailabilityForm({
                 id={field.name}
                 name={field.name}
                 checked={field.state.value}
-                onCheckedChange={(checked) => field.handleChange(checked)}
+                onCheckedChange={(checked) => {
+                  field.handleChange(checked);
+
+                  if (!checked) {
+                    form.setFieldValue("stockQuantity", "");
+                  }
+                }}
               />
               <FieldLabel htmlFor={field.name} className="flex-1">
                 Produkt limitowany
@@ -98,6 +106,41 @@ export function ProductAvailabilityForm({
             </Field>
           )}
         </form.Field>
+
+        <form.Subscribe selector={(state) => state.values.isLimited}>
+          {(isLimited) =>
+            isLimited ? (
+              <form.Field name="stockQuantity">
+                {(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={field.name}>
+                        Ilość na magazynie
+                      </FieldLabel>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        placeholder="0"
+                        inputMode="numeric"
+                        className="h-8 rounded-full"
+                        aria-invalid={isInvalid}
+                        onBlur={field.handleBlur}
+                        onChange={(event) =>
+                          field.handleChange(event.target.value)
+                        }
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  );
+                }}
+              </form.Field>
+            ) : null
+          }
+        </form.Subscribe>
 
         <Separator className="bg-[#E5E5E5]" />
 
