@@ -100,6 +100,24 @@ function numberField(params: {
   return z.preprocess(toNumberInput, schema);
 }
 
+function optionalNumberField(params: {
+  invalid: string;
+  integer?: string;
+  nonnegative?: string;
+}) {
+  let schema = z.coerce.number({ message: params.invalid });
+
+  if (params.integer) {
+    schema = schema.int(params.integer);
+  }
+
+  if (params.nonnegative) {
+    schema = schema.nonnegative(params.nonnegative);
+  }
+
+  return z.preprocess(toNumberInput, schema.optional());
+}
+
 function roundToDecimals(value: number, decimals: number) {
   const factor = 10 ** decimals;
 
@@ -188,7 +206,7 @@ const orderQuantityObject = z.object({
 const stockQuantitySchema = z.discriminatedUnion("isLimited", [
   z.object({
     isLimited: z.literal(true),
-    stockQuantity: numberField({
+    stockQuantity: optionalNumberField({
       invalid: "Podaj prawidłową ilość na magazynie.",
       integer: "Ilość na magazynie musi być liczbą całkowitą.",
       nonnegative: "Ilość na magazynie nie może być ujemna.",

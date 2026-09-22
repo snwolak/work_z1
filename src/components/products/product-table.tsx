@@ -61,7 +61,7 @@ function formatPrice(product: Product) {
 }
 
 function getStockLabel(product: Product) {
-  if (!product.isLimited) {
+  if (!product.isLimited || product.stockQuantity === undefined) {
     return "—";
   }
 

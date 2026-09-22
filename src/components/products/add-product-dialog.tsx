@@ -9,6 +9,10 @@ import {
   ProductBasicInfoForm,
 } from "@/components/products/product-basic-info-form";
 import {
+  PRODUCT_AVAILABILITY_FORM_ID,
+  ProductAvailabilityForm,
+} from "@/components/products/product-availability-form";
+import {
   PRODUCT_PRICE_FORM_ID,
   ProductPriceForm,
 } from "@/components/products/product-price-form";
@@ -29,7 +33,7 @@ const STEPS = [
   {
     title: "Dostępność",
     description: "Stany magazynowe",
-    formId: null,
+    formId: PRODUCT_AVAILABILITY_FORM_ID,
   },
 ] as const;
 
@@ -151,7 +155,11 @@ export function AddProductDialog({
               <ProductPriceForm onSubmit={() => setStep(2)} />
             </div>
 
-            {isLastStep ? <div className="min-h-[240px]" /> : null}
+            <div className={cn(step !== 2 && "hidden")}>
+              <ProductAvailabilityForm
+                onSubmit={() => handleOpenChange(false)}
+              />
+            </div>
           </div>
 
           <div
