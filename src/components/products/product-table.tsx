@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 
+import { AddProductDialog } from "@/components/products/add-product-dialog";
 import { ProductTablePagination } from "@/components/products/product-table-pagination";
 import { Button } from "@/components/ui/button";
 import {
@@ -131,6 +133,7 @@ function ProductCards({ products }: { products: Product[] }) {
 export function ProductTable() {
   const products = useProductStore((state) => state.products);
   const [page, setPage] = useQueryState("page", pageParser);
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
 
   const pageCount = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
   const safePage = Math.min(Math.max(page, 1), pageCount);
@@ -156,6 +159,7 @@ export function ProductTable() {
         <Button
           type="button"
           className="h-9 rounded-full bg-primary px-4 text-sm text-primary-foreground hover:bg-primary/90"
+          onClick={() => setIsAddProductOpen(true)}
         >
           <Plus className="size-4" aria-hidden="true" />
           Dodaj produkt
@@ -231,6 +235,11 @@ export function ProductTable() {
           onPageChange={handlePageChange}
         />
       </div>
+
+      <AddProductDialog
+        open={isAddProductOpen}
+        onOpenChange={setIsAddProductOpen}
+      />
     </section>
   );
 }
