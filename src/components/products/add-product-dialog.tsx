@@ -59,9 +59,9 @@ export function AddProductDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="flex h-dvh max-h-dvh w-full max-w-none flex-col gap-0 overflow-hidden rounded-none bg-card p-0 text-foreground ring-0 sm:max-w-none md:h-auto md:max-h-[calc(100dvh-2rem)] md:w-[720px] md:max-w-[calc(100vw-2rem)] md:rounded-[14px] md:border md:border-black/10"
+        className="flex h-dvh max-h-dvh w-full max-w-none flex-col gap-0 overflow-hidden rounded-none bg-card p-0 text-foreground ring-0 sm:max-w-none md:h-auto md:max-h-[calc(100dvh-2rem)] md:w-[720px] md:max-w-[calc(100vw-2rem)] md:rounded-[14px] md:border md:border-border"
       >
-        <div className="relative shrink-0 px-4 pt-6 pb-4 md:flex md:h-16 md:items-center md:border-b md:border-[#E5E5E5] md:py-0">
+        <div className="relative shrink-0 px-4 pt-6 pb-4 md:flex md:h-16 md:items-center md:border-b md:border-border md:py-0">
           <div className="flex flex-1 items-center justify-between gap-2">
             <DialogTitle className="text-base leading-none font-medium text-foreground">
               Dodaj nowy produkt
@@ -77,11 +77,11 @@ export function AddProductDialog({
 
           <div
             aria-hidden="true"
-            className="absolute inset-x-4 bottom-0 h-px bg-[#E5E5E5] md:hidden"
+            className="absolute inset-x-4 bottom-0 h-px bg-border md:hidden"
           />
         </div>
 
-        <div className="px-4 pt-3 md:border-b md:border-[#E5E5E5] md:pb-3">
+        <div className="px-4 pt-3 md:border-b md:border-border md:pb-3">
           <ol className="flex items-start gap-4 md:items-center">
             {ADD_PRODUCT_STEPS.map((wizardStep, index) => {
               const isCompleted = index < step;
@@ -98,7 +98,7 @@ export function AddProductDialog({
                       aria-hidden="true"
                       className={cn(
                         "hidden h-px w-[67px] md:block",
-                        index <= step ? "bg-primary" : "bg-[#E4E4E4]",
+                        index <= step ? "bg-primary" : "bg-border",
                       )}
                     />
                   ) : null}
@@ -109,7 +109,7 @@ export function AddProductDialog({
                         "flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
                         isCompleted || isCurrent
                           ? "bg-primary text-primary-foreground"
-                          : "border border-[#E5E5E5] bg-[#F5F5F5] text-muted-foreground",
+                          : "border border-border bg-muted text-muted-foreground",
                       )}
                     >
                       {isCompleted ? (
@@ -140,10 +140,7 @@ export function AddProductDialog({
             })}
           </ol>
 
-          <div
-            aria-hidden="true"
-            className="mt-3 h-px bg-[#E5E5E5] md:hidden"
-          />
+          <div aria-hidden="true" className="mt-3 h-px bg-border md:hidden" />
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-4 md:py-5">
@@ -171,7 +168,7 @@ export function AddProductDialog({
 
         <div
           className={cn(
-            "flex items-center gap-2 border-t border-[#E5E5E5] bg-[#FAFAFA] px-4 py-4",
+            "flex items-center gap-2 border-t border-border bg-muted px-4 py-4",
             isFirstStep ? "justify-end" : "justify-between",
           )}
         >

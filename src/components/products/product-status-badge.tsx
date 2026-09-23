@@ -2,7 +2,8 @@ import { cn } from "@/lib/utils";
 import type { ProductListStatus } from "@/lib/product-list-view";
 
 const TONE_CLASSES: Record<ProductListStatus["tone"], string> = {
-  available: "bg-[#E8F6ED] text-[#16A34A]",
+  available:
+    "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
   unavailable: "bg-destructive/10 text-destructive",
 };
 

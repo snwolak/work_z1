@@ -62,7 +62,7 @@ export function ProductTablePagination({
               className={cn(
                 "size-8 rounded-md text-sm border-0 text-foreground",
                 pageNumber === page &&
-                  "bg-primary text-white hover:bg-primary/90",
+                  "bg-primary text-primary-foreground hover:bg-primary/90",
               )}
               aria-current={pageNumber === page ? "page" : undefined}
               onClick={() => onPageChange(pageNumber)}
@@ -99,7 +99,7 @@ export function ProductTablePagination({
   }
 
   return (
-    <div className="flex flex-col gap-3 bg-[#F9FAFB] px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 bg-muted px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
       <p>{caption}</p>
       {nav}
     </div>

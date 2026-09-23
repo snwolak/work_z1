@@ -90,7 +90,7 @@ export function ProductTable() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[980px] border-collapse text-left">
                 <thead>
-                  <tr className="border-b bg-[#F9FAFB]">
+                  <tr className="border-b bg-muted">
                     {columns.map((column) => (
                       <th
                         key={column.key}

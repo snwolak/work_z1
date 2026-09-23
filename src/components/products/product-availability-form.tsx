@@ -81,7 +81,7 @@ export function ProductAvailabilityForm({
           )}
         </form.Field>
 
-        <Separator className="bg-[#E5E5E5] md:-mt-1" />
+        <Separator className="md:-mt-1" />
 
         <form.Field name="isLimited">
           {(field) => (
@@ -143,7 +143,7 @@ export function ProductAvailabilityForm({
           }
         </form.Subscribe>
 
-        <Separator className="bg-[#E5E5E5]" />
+        <Separator />
 
         <div className="flex flex-col gap-4">
           <FieldTitle className="text-base leading-6">
