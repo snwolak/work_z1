@@ -2,20 +2,20 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { parseAsInteger, useQueryState } from "nuqs";
 
 import { AddProductDialog } from "@/components/products/add-product-dialog";
+import { ProductCards } from "@/components/products/product-cards";
+import { ProductStatusBadge } from "@/components/products/product-status-badge";
 import { ProductTablePagination } from "@/components/products/product-table-pagination";
+import { useProductPagination } from "@/components/products/use-product-pagination";
 import { Button } from "@/components/ui/button";
 import {
-  PRODUCT_CATEGORY_LABELS,
-  type Product,
-  type ProductCategory,
-} from "@/lib/product";
+  formatGrossPrice,
+  formatProductCount,
+  formatStockQuantity,
+} from "@/lib/format-product";
+import { PRODUCT_CATEGORY_LABELS } from "@/lib/product";
 import { cn } from "@/lib/utils";
-import { useProductStore } from "@/store/product-store";
-
-const PAGE_SIZE = 5;
 
 const columns = [
   { key: "name", label: "Nazwa", className: "min-w-[260px] lg:w-[29%]" },
@@ -34,119 +34,16 @@ const columns = [
   { key: "stock", label: "Magazyn", className: "min-w-[120px] lg:w-[17%]" },
 ] as const;
 
-const pageParser = parseAsInteger.withDefault(1);
-
-function formatProductCount(count: number) {
-  if (count === 1) {
-    return "1 produkt";
-  }
-
-  const lastDigit = count % 10;
-  const lastTwoDigits = count % 100;
-  const isFew =
-    lastDigit >= 2 &&
-    lastDigit <= 4 &&
-    !(lastTwoDigits >= 12 && lastTwoDigits <= 14);
-
-  return `${count} ${isFew ? "produkty" : "produktów"}`;
-}
-
-function formatPrice(product: Product) {
-  return new Intl.NumberFormat("pl-PL", {
-    style: "currency",
-    currency: product.currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(product.grossPrice);
-}
-
-function getStockLabel(product: Product) {
-  if (!product.isLimited || product.stockQuantity === undefined) {
-    return "—";
-  }
-
-  return product.stockQuantity.toString();
-}
-
-function getCategoryLabel(category: ProductCategory) {
-  return PRODUCT_CATEGORY_LABELS[category];
-}
-
-function ProductStatusBadge({ isAvailable }: { isAvailable: boolean }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-5 items-center rounded-full px-2 text-xs font-medium",
-        isAvailable
-          ? "bg-[#E8F6ED] text-[#16A34A]"
-          : "bg-destructive/10 text-destructive",
-      )}
-    >
-      {isAvailable ? "Dostępny" : "Niedostępny"}
-    </span>
-  );
-}
-
-function ProductCards({ products }: { products: Product[] }) {
-  return (
-    <div className="grid gap-2 md:hidden">
-      {products.map((product) => (
-        <article key={product.id} className="rounded-[12px] border bg-card p-3">
-          <div className="flex items-center justify-between gap-2.5">
-            <div className="min-w-0">
-              <h2 className="truncate text-base font-medium text-foreground">
-                {product.name}
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {product.sku}
-              </p>
-            </div>
-            <ProductStatusBadge isAvailable={product.isAvailable} />
-          </div>
-
-          <dl className="mt-2 grid grid-cols-3 gap-1 rounded-[9px] bg-muted p-3">
-            <div>
-              <dt className="text-xs text-muted-foreground">Kategoria</dt>
-              <dd className="mt-1 text-sm text-foreground">
-                {getCategoryLabel(product.category)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Cena brutto</dt>
-              <dd className="mt-1 text-sm font-medium text-foreground">
-                {formatPrice(product)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Magazyn</dt>
-              <dd className="mt-1 text-sm text-foreground">
-                {getStockLabel(product)}
-              </dd>
-            </div>
-          </dl>
-        </article>
-      ))}
-    </div>
-  );
-}
-
 export function ProductTable() {
-  const products = useProductStore((state) => state.products);
-  const [page, setPage] = useQueryState("page", pageParser);
+  const {
+    totalCount,
+    pageCount,
+    page,
+    visibleProducts,
+    changePage,
+    goToLastPage,
+  } = useProductPagination();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
-
-  const pageCount = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
-  const safePage = Math.min(Math.max(page, 1), pageCount);
-  const pageStart = (safePage - 1) * PAGE_SIZE;
-  const visibleProducts = products.slice(pageStart, pageStart + PAGE_SIZE);
-
-  function handlePageChange(nextPage: number) {
-    void setPage(Math.min(Math.max(nextPage, 1), pageCount));
-  }
-
-  function handleProductAdded() {
-    void setPage(Math.max(1, Math.ceil((products.length + 1) / PAGE_SIZE)));
-  }
 
   return (
     <section className="mx-auto flex w-full max-w-[1240px] flex-col gap-4 px-4 py-6 sm:px-6 md:gap-6 lg:px-0 lg:py-[50px]">
@@ -156,7 +53,7 @@ export function ProductTable() {
             Produkty
           </h1>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
-            {formatProductCount(products.length)} w katalogu
+            {formatProductCount(totalCount)} w katalogu
           </p>
         </div>
 
@@ -170,80 +67,101 @@ export function ProductTable() {
         </Button>
       </header>
 
-      <ProductCards products={visibleProducts} />
-
-      <div className="hidden overflow-hidden rounded-lg border bg-card shadow-xs md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] border-collapse text-left">
-            <thead>
-              <tr className="border-b bg-[#F9FAFB]">
-                {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    scope="col"
-                    className={cn(
-                      "h-10 px-4 text-sm font-medium text-muted-foreground",
-                      column.className,
-                    )}
-                  >
-                    {column.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {visibleProducts.map((product) => (
-                <tr key={product.id} className="border-b last:border-b">
-                  <td className="h-12 px-4 text-sm font-medium text-foreground">
-                    <span className="block truncate">{product.name}</span>
-                  </td>
-                  <td className="h-12 px-4 text-xs text-muted-foreground">
-                    <span className="block truncate">{product.sku}</span>
-                  </td>
-                  <td className="h-12 px-4 text-sm text-muted-foreground">
-                    <span className="block truncate">
-                      {getCategoryLabel(product.category)}
-                    </span>
-                  </td>
-                  <td className="h-12 px-4 text-sm font-medium text-foreground">
-                    <span className="block truncate">
-                      {formatPrice(product)}
-                    </span>
-                  </td>
-                  <td className="h-12 px-4">
-                    <ProductStatusBadge isAvailable={product.isAvailable} />
-                  </td>
-                  <td className="h-12 px-4 text-sm text-foreground">
-                    {getStockLabel(product)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {totalCount === 0 ? (
+        <div className="flex flex-col items-center gap-3 rounded-lg border bg-card px-4 py-12 text-center">
+          <p className="text-base font-medium text-foreground">
+            Brak produktów w katalogu
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Dodaj pierwszy produkt, aby zobaczyć go na liście.
+          </p>
+          <Button
+            type="button"
+            className="mt-1 h-9 rounded-full bg-primary px-4 text-sm text-primary-foreground hover:bg-primary/90"
+            onClick={() => setIsAddProductOpen(true)}
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            Dodaj produkt
+          </Button>
         </div>
+      ) : (
+        <>
+          <ProductCards products={visibleProducts} />
 
-        <ProductTablePagination
-          page={safePage}
-          pageCount={pageCount}
-          totalCount={products.length}
-          onPageChange={handlePageChange}
-        />
-      </div>
+          <div className="hidden overflow-hidden rounded-lg border bg-card shadow-xs md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] border-collapse text-left">
+                <thead>
+                  <tr className="border-b bg-[#F9FAFB]">
+                    {columns.map((column) => (
+                      <th
+                        key={column.key}
+                        scope="col"
+                        className={cn(
+                          "h-10 px-4 text-sm font-medium text-muted-foreground",
+                          column.className,
+                        )}
+                      >
+                        {column.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleProducts.map((product) => (
+                    <tr key={product.id} className="border-b last:border-b">
+                      <td className="h-12 px-4 text-sm font-medium text-foreground">
+                        <span className="block truncate">{product.name}</span>
+                      </td>
+                      <td className="h-12 px-4 text-xs text-muted-foreground">
+                        <span className="block truncate">{product.sku}</span>
+                      </td>
+                      <td className="h-12 px-4 text-sm text-muted-foreground">
+                        <span className="block truncate">
+                          {PRODUCT_CATEGORY_LABELS[product.category]}
+                        </span>
+                      </td>
+                      <td className="h-12 px-4 text-sm font-medium text-foreground">
+                        <span className="block truncate">
+                          {formatGrossPrice(product)}
+                        </span>
+                      </td>
+                      <td className="h-12 px-4">
+                        <ProductStatusBadge isAvailable={product.isAvailable} />
+                      </td>
+                      <td className="h-12 px-4 text-sm text-foreground">
+                        {formatStockQuantity(product)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-      <div className="mt-2 md:hidden">
-        <ProductTablePagination
-          variant="stacked"
-          page={safePage}
-          pageCount={pageCount}
-          totalCount={products.length}
-          onPageChange={handlePageChange}
-        />
-      </div>
+            <ProductTablePagination
+              page={page}
+              pageCount={pageCount}
+              totalCount={totalCount}
+              onPageChange={changePage}
+            />
+          </div>
+
+          <div className="mt-2 md:hidden">
+            <ProductTablePagination
+              variant="stacked"
+              page={page}
+              pageCount={pageCount}
+              totalCount={totalCount}
+              onPageChange={changePage}
+            />
+          </div>
+        </>
+      )}
 
       <AddProductDialog
         open={isAddProductOpen}
         onOpenChange={setIsAddProductOpen}
-        onProductAdded={handleProductAdded}
+        onProductAdded={goToLastPage}
       />
     </section>
   );

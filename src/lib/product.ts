@@ -72,6 +72,69 @@ const DECIMAL_SEPARATOR = ",";
 const PRICE_DECIMALS = 2;
 const PRICE_TOLERANCE = 0.005;
 
+export function calcGrossPrice(
+  netPrice: number,
+  vatRate: ProductVatRate,
+): number {
+  return roundToDecimals(netPrice * (1 + vatRate / 100), PRICE_DECIMALS);
+}
+
+export function calcNetPrice(
+  grossPrice: number,
+  vatRate: ProductVatRate,
+): number {
+  return roundToDecimals(grossPrice / (1 + vatRate / 100), PRICE_DECIMALS);
+}
+
+export function parseDecimalInput(value: string): number | null {
+  const trimmed = value.trim();
+
+  if (trimmed === "") {
+    return null;
+  }
+
+  const parsed = Number(trimmed.replace(DECIMAL_SEPARATOR, "."));
+
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+export function isProductManufacturer(
+  value: unknown,
+): value is ProductManufacturer {
+  return (
+    typeof value === "string" &&
+    PRODUCT_MANUFACTURERS.some((entry) => entry === value)
+  );
+}
+
+export function isProductCategory(value: unknown): value is ProductCategory {
+  return (
+    typeof value === "string" &&
+    PRODUCT_CATEGORIES.some((entry) => entry === value)
+  );
+}
+
+export function isProductFeature(value: unknown): value is ProductFeature {
+  return (
+    typeof value === "string" &&
+    PRODUCT_FEATURES.some((entry) => entry === value)
+  );
+}
+
+export function isProductCurrency(value: unknown): value is ProductCurrency {
+  return (
+    typeof value === "string" &&
+    PRODUCT_CURRENCIES.some((entry) => entry === value)
+  );
+}
+
+export function isProductVatRate(value: unknown): value is ProductVatRate {
+  return (
+    typeof value === "number" &&
+    PRODUCT_VAT_RATES.some((entry) => entry === value)
+  );
+}
+
 function toNumberInput(value: unknown) {
   if (typeof value !== "string") {
     return value;
@@ -153,10 +216,7 @@ function validatePriceConsistency(
   data: z.infer<typeof productPriceObject>,
   ctx: z.RefinementCtx,
 ) {
-  const expectedGrossPrice = roundToDecimals(
-    data.netPrice * (1 + data.vatRate / 100),
-    PRICE_DECIMALS,
-  );
+  const expectedGrossPrice = calcGrossPrice(data.netPrice, data.vatRate);
   const actualGrossPrice = roundToDecimals(data.grossPrice, PRICE_DECIMALS);
 
   if (Math.abs(actualGrossPrice - expectedGrossPrice) > PRICE_TOLERANCE) {

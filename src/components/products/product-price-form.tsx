@@ -21,19 +21,32 @@ import {
   PRODUCT_CURRENCIES,
   PRODUCT_VAT_RATE_LABELS,
   PRODUCT_VAT_RATES,
+  calcGrossPrice,
+  calcNetPrice,
+  isProductCurrency,
+  isProductVatRate,
+  parseDecimalInput,
   productPriceSchema,
   type ProductCurrency,
   type ProductPrice,
   type ProductVatRate,
 } from "@/lib/product";
+import { asFormValidator } from "@/lib/validate-form";
 
 export const PRODUCT_PRICE_FORM_ID = "product-price-form";
 
-const defaultValues = {
+type ProductPriceFormValues = {
+  netPrice: string;
+  grossPrice: string;
+  vatRate: ProductVatRate;
+  currency: ProductCurrency;
+};
+
+const defaultValues: ProductPriceFormValues = {
   netPrice: "",
   grossPrice: "",
-  vatRate: 23 as ProductPrice["vatRate"],
-  currency: "PLN" as ProductCurrency,
+  vatRate: 23,
+  currency: "PLN",
 };
 
 const VAT_ITEMS = PRODUCT_VAT_RATES.map((value) => ({
@@ -46,21 +59,6 @@ const CURRENCY_ITEMS = PRODUCT_CURRENCIES.map((value) => ({
   label: value,
 }));
 
-const PRICE_DECIMALS = 2;
-
-function roundAmount(value: number) {
-  const factor = 10 ** PRICE_DECIMALS;
-
-  return Math.round(value * factor) / factor;
-}
-
-function parseAmount(value: string) {
-  const trimmed = value.trim();
-  const parsed = Number(trimmed.replace(",", "."));
-
-  return trimmed === "" || Number.isNaN(parsed) ? null : parsed;
-}
-
 type ProductPriceFormProps = {
   onSubmit: (value: ProductPrice) => void;
 };
@@ -68,7 +66,9 @@ type ProductPriceFormProps = {
 export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
   const form = useForm({
     defaultValues,
-    validators: { onSubmit: productPriceSchema as unknown as never },
+    validators: {
+      onSubmit: asFormValidator<ProductPriceFormValues>(productPriceSchema),
+    },
     onSubmit: ({ value }) => {
       const parsed = productPriceSchema.safeParse(value);
 
@@ -77,32 +77,65 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
       }
     },
   });
-  const lastEdited = useRef<"netPrice" | "grossPrice">("netPrice");
+  const lastEditedPrice = useRef<"netPrice" | "grossPrice">("netPrice");
 
-  function recalcGross(rawNet: string, vat: number) {
-    const net = parseAmount(rawNet);
+  function handleNetPriceChange(rawNetPrice: string) {
+    const vatRate = form.getFieldValue("vatRate");
+    lastEditedPrice.current = "netPrice";
 
-    if (net === null) {
-      return;
+    const netPrice = parseDecimalInput(rawNetPrice);
+
+    if (netPrice !== null) {
+      form.setFieldValue(
+        "grossPrice",
+        String(calcGrossPrice(netPrice, vatRate)),
+      );
     }
-
-    form.setFieldValue(
-      "grossPrice",
-      String(roundAmount(net * (1 + vat / 100))),
-    );
   }
 
-  function recalcNet(rawGross: string, vat: number) {
-    const gross = parseAmount(rawGross);
+  function handleGrossPriceChange(rawGrossPrice: string) {
+    const vatRate = form.getFieldValue("vatRate");
+    lastEditedPrice.current = "grossPrice";
 
-    if (gross === null) {
+    const grossPrice = parseDecimalInput(rawGrossPrice);
+
+    if (grossPrice !== null) {
+      form.setFieldValue("netPrice", String(calcNetPrice(grossPrice, vatRate)));
+    }
+  }
+
+  function handleVatRateChange(selected: string | null) {
+    if (!selected) {
       return;
     }
 
-    form.setFieldValue(
-      "netPrice",
-      String(roundAmount(gross / (1 + vat / 100))),
-    );
+    const vatRate = Number(selected);
+
+    if (!isProductVatRate(vatRate)) {
+      return;
+    }
+
+    form.setFieldValue("vatRate", vatRate);
+
+    if (lastEditedPrice.current === "grossPrice") {
+      const grossPrice = parseDecimalInput(form.getFieldValue("grossPrice"));
+
+      if (grossPrice !== null) {
+        form.setFieldValue(
+          "netPrice",
+          String(calcNetPrice(grossPrice, vatRate)),
+        );
+      }
+    } else {
+      const netPrice = parseDecimalInput(form.getFieldValue("netPrice"));
+
+      if (netPrice !== null) {
+        form.setFieldValue(
+          "grossPrice",
+          String(calcGrossPrice(netPrice, vatRate)),
+        );
+      }
+    }
   }
 
   return (
@@ -136,10 +169,8 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                     aria-invalid={isInvalid}
                     onBlur={field.handleBlur}
                     onChange={(event) => {
-                      const vat = form.getFieldValue("vatRate");
-                      lastEdited.current = "netPrice";
                       field.handleChange(event.target.value);
-                      recalcGross(event.target.value, vat);
+                      handleNetPriceChange(event.target.value);
                     }}
                   />
                   <FieldError errors={field.state.meta.errors} />
@@ -166,10 +197,8 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                     aria-invalid={isInvalid}
                     onBlur={field.handleBlur}
                     onChange={(event) => {
-                      const vat = form.getFieldValue("vatRate");
-                      lastEdited.current = "grossPrice";
                       field.handleChange(event.target.value);
-                      recalcNet(event.target.value, vat);
+                      handleGrossPriceChange(event.target.value);
                     }}
                   />
                   <FieldError errors={field.state.meta.errors} />
@@ -191,20 +220,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                   <Select
                     items={VAT_ITEMS}
                     value={String(field.state.value)}
-                    onValueChange={(value) => {
-                      if (!value) {
-                        return;
-                      }
-
-                      const rate = Number(value) as ProductVatRate;
-                      field.handleChange(rate);
-
-                      if (lastEdited.current === "grossPrice") {
-                        recalcNet(form.getFieldValue("grossPrice"), rate);
-                      } else {
-                        recalcGross(form.getFieldValue("netPrice"), rate);
-                      }
-                    }}
+                    onValueChange={handleVatRateChange}
                   >
                     <SelectTrigger
                       id={field.name}
@@ -240,8 +256,8 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                     items={CURRENCY_ITEMS}
                     value={field.state.value}
                     onValueChange={(value) => {
-                      if (value) {
-                        field.handleChange(value as ProductCurrency);
+                      if (isProductCurrency(value)) {
+                        field.handleChange(value);
                       }
                     }}
                   >

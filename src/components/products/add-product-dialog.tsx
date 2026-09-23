@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 
@@ -66,7 +66,7 @@ export function AddProductDialog({
   const [price, setPrice] = useState<ProductPrice | null>(null);
   const isFirstStep = step === 0;
   const isLastStep = step === STEPS.length - 1;
-  const formId = STEPS[step]?.formId ?? null;
+  const activeFormId = STEPS[step]?.formId ?? PRODUCT_BASIC_INFO_FORM_ID;
 
   function handleOpenChange(nextOpen: boolean) {
     onOpenChange(nextOpen);
@@ -123,13 +123,17 @@ export function AddProductDialog({
           </div>
 
           <div className="px-4 pt-3 md:border-b md:border-[#E5E5E5] md:pb-3">
-            <div className="flex items-start gap-4 md:items-center">
-              {STEPS.map((item, index) => {
+            <ol className="flex items-start gap-4 md:items-center">
+              {STEPS.map((wizardStep, index) => {
                 const isCompleted = index < step;
                 const isCurrent = index === step;
 
                 return (
-                  <Fragment key={item.title}>
+                  <li
+                    key={wizardStep.title}
+                    aria-current={isCurrent ? "step" : undefined}
+                    className="flex flex-1 items-start gap-4 md:items-center"
+                  >
                     {index > 0 ? (
                       <span
                         aria-hidden="true"
@@ -165,17 +169,17 @@ export function AddProductDialog({
                               : "text-muted-foreground",
                           )}
                         >
-                          {item.title}
+                          {wizardStep.title}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {item.description}
+                          {wizardStep.description}
                         </span>
                       </span>
                     </div>
-                  </Fragment>
+                  </li>
                 );
               })}
-            </div>
+            </ol>
 
             <div
               aria-hidden="true"
@@ -184,7 +188,7 @@ export function AddProductDialog({
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-5">
-            <div className={cn(step !== 0 && "hidden")}>
+            <div hidden={step !== 0}>
               <ProductBasicInfoForm
                 onSubmit={(value) => {
                   setBasicInfo(value);
@@ -193,7 +197,7 @@ export function AddProductDialog({
               />
             </div>
 
-            <div className={cn(step !== 1 && "hidden")}>
+            <div hidden={step !== 1}>
               <ProductPriceForm
                 onSubmit={(value) => {
                   setPrice(value);
@@ -202,7 +206,7 @@ export function AddProductDialog({
               />
             </div>
 
-            <div className={cn(step !== 2 && "hidden")}>
+            <div hidden={step !== 2}>
               <ProductAvailabilityForm onSubmit={handleAvailabilitySubmit} />
             </div>
           </div>
@@ -226,14 +230,9 @@ export function AddProductDialog({
             )}
 
             <Button
-              type={formId ? "submit" : "button"}
-              form={formId ?? undefined}
+              type="submit"
+              form={activeFormId}
               className="h-9 gap-1.5 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              onClick={() => {
-                if (!formId && !isLastStep) {
-                  setStep(step + 1);
-                }
-              }}
             >
               {isLastStep ? "Zapisz produkt" : "Dalej"}
               {isLastStep ? null : (

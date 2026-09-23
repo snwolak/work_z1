@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { formatProductCount } from "@/lib/format-product";
 import { cn } from "@/lib/utils";
 
 type ProductTablePaginationProps = {
@@ -13,6 +14,28 @@ type ProductTablePaginationProps = {
   variant?: "bar" | "stacked";
 };
 
+const MAX_VISIBLE_PAGES = 7;
+
+function getVisiblePages(page: number, pageCount: number) {
+  if (pageCount <= MAX_VISIBLE_PAGES) {
+    return Array.from({ length: pageCount }, (_, index) => index + 1);
+  }
+
+  const visiblePages = new Set([
+    1,
+    2,
+    page - 1,
+    page,
+    page + 1,
+    pageCount - 1,
+    pageCount,
+  ]);
+
+  return [...visiblePages]
+    .filter((pageNumber) => pageNumber >= 1 && pageNumber <= pageCount)
+    .sort((a, b) => a - b);
+}
+
 export function ProductTablePagination({
   page,
   pageCount,
@@ -20,7 +43,7 @@ export function ProductTablePagination({
   onPageChange,
   variant = "bar",
 }: ProductTablePaginationProps) {
-  const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
+  const pageNumbers = getVisiblePages(page, pageCount);
   const isFirstPage = page <= 1;
   const isLastPage = page >= pageCount;
 
@@ -41,22 +64,35 @@ export function ProductTablePagination({
         Wstecz
       </Button>
 
-      {pages.map((item) => (
-        <Button
-          key={item}
-          type="button"
-          variant={item === page ? "default" : "ghost"}
-          size="icon"
-          className={cn(
-            "size-8 rounded-md text-sm border-0 text-foreground",
-            item === page && "bg-primary text-white hover:bg-primary/90",
-          )}
-          aria-current={item === page ? "page" : undefined}
-          onClick={() => onPageChange(item)}
-        >
-          {item}
-        </Button>
-      ))}
+      {pageNumbers.map((pageNumber, index) => {
+        const previous = pageNumbers[index - 1];
+        const showEllipsis =
+          previous !== undefined && pageNumber - previous > 1;
+
+        return (
+          <span key={pageNumber} className="flex items-center gap-0.5">
+            {showEllipsis ? (
+              <span aria-hidden="true" className="px-1 text-muted-foreground">
+                …
+              </span>
+            ) : null}
+            <Button
+              type="button"
+              variant={pageNumber === page ? "default" : "ghost"}
+              size="icon"
+              className={cn(
+                "size-8 rounded-md text-sm border-0 text-foreground",
+                pageNumber === page &&
+                  "bg-primary text-white hover:bg-primary/90",
+              )}
+              aria-current={pageNumber === page ? "page" : undefined}
+              onClick={() => onPageChange(pageNumber)}
+            >
+              {pageNumber}
+            </Button>
+          </span>
+        );
+      })}
 
       <Button
         type="button"
@@ -72,7 +108,7 @@ export function ProductTablePagination({
     </nav>
   );
 
-  const caption = `Strona ${page} z ${pageCount} · ${totalCount} produktów`;
+  const caption = `Strona ${page} z ${pageCount} · ${formatProductCount(totalCount)}`;
 
   if (variant === "stacked") {
     return (

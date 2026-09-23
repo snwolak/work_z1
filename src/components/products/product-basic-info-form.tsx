@@ -25,19 +25,32 @@ import {
   PRODUCT_FEATURE_LABELS,
   PRODUCT_MANUFACTURERS,
   PRODUCT_MANUFACTURER_LABELS,
+  isProductCategory,
+  isProductFeature,
+  isProductManufacturer,
   productBasicInfoSchema,
   type ProductBasicInfo,
+  type ProductCategory,
   type ProductFeature,
+  type ProductManufacturer,
 } from "@/lib/product";
 
 export const PRODUCT_BASIC_INFO_FORM_ID = "product-basic-info-form";
 
-const defaultValues: ProductBasicInfo = {
+type ProductBasicInfoFormValues = Omit<
+  ProductBasicInfo,
+  "manufacturer" | "category"
+> & {
+  manufacturer: ProductManufacturer | "";
+  category: ProductCategory | "";
+};
+
+const defaultValues: ProductBasicInfoFormValues = {
   name: "",
   sku: "",
   description: "",
-  manufacturer: "" as ProductBasicInfo["manufacturer"],
-  category: "" as ProductBasicInfo["category"],
+  manufacturer: "",
+  category: "",
   features: [],
 };
 
@@ -60,7 +73,11 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
     defaultValues,
     validators: { onSubmit: productBasicInfoSchema },
     onSubmit: ({ value }) => {
-      onSubmit(value);
+      const parsed = productBasicInfoSchema.safeParse(value);
+
+      if (parsed.success) {
+        onSubmit(parsed.data);
+      }
     },
   });
 
@@ -157,7 +174,9 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                     items={MANUFACTURER_ITEMS}
                     value={field.state.value || null}
                     onValueChange={(value) => {
-                      if (value) field.handleChange(value);
+                      if (isProductManufacturer(value)) {
+                        field.handleChange(value);
+                      }
                     }}
                   >
                     <SelectTrigger
@@ -194,7 +213,9 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                     items={CATEGORY_ITEMS}
                     value={field.state.value || null}
                     onValueChange={(value) => {
-                      if (value) field.handleChange(value);
+                      if (isProductCategory(value)) {
+                        field.handleChange(value);
+                      }
                     }}
                   >
                     <SelectTrigger
@@ -233,8 +254,12 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                   variant="outline"
                   value={field.state.value}
                   className="flex-wrap"
-                  onValueChange={(value) =>
-                    field.handleChange(value as ProductFeature[])
+                  onValueChange={(selected) =>
+                    field.handleChange(
+                      selected.filter((feature): feature is ProductFeature =>
+                        isProductFeature(feature),
+                      ),
+                    )
                   }
                 >
                   {PRODUCT_FEATURES.map((feature) => (
