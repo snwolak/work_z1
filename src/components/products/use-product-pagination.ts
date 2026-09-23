@@ -1,41 +1,51 @@
+import { useEffect } from "react";
 import { parseAsInteger, useQueryState } from "nuqs";
 
+import {
+  clampPage,
+  getVisiblePages,
+  pageCountForCount,
+  sliceForPage,
+} from "@/lib/pagination";
 import { useProductStore } from "@/store/product-store";
 
-export const PRODUCT_PAGE_SIZE = 5;
-
 const pageParam = parseAsInteger.withDefault(1);
-
-function clampPage(requestedPage: number, pageCount: number) {
-  return Math.min(Math.max(requestedPage, 1), pageCount);
-}
 
 export function useProductPagination() {
   const products = useProductStore((state) => state.products);
   const [requestedPage, setRequestedPage] = useQueryState("page", pageParam);
 
   const totalCount = products.length;
-  const pageCount = Math.max(1, Math.ceil(totalCount / PRODUCT_PAGE_SIZE));
+  const pageCount = pageCountForCount(totalCount);
   const page = clampPage(requestedPage, pageCount);
-  const visibleProducts = products.slice(
-    (page - 1) * PRODUCT_PAGE_SIZE,
-    page * PRODUCT_PAGE_SIZE,
-  );
+  const visibleProducts = sliceForPage(products, page);
+  const pageNumbers = getVisiblePages(page, pageCount);
 
+  useEffect(() => {
+    if (requestedPage !== page) {
+      void setRequestedPage(page);
+    }
+  }, [requestedPage, page, setRequestedPage]);
+
+  // Handlers read getState() for a fresh count: closures may hold products
+  // from before the write they respond to (e.g. goToLastPage after add).
   function changePage(nextPage: number) {
-    void setRequestedPage(clampPage(nextPage, pageCount));
+    const count = useProductStore.getState().products.length;
+
+    void setRequestedPage(clampPage(nextPage, pageCountForCount(count)));
   }
 
   function goToLastPage() {
     const count = useProductStore.getState().products.length;
 
-    void setRequestedPage(Math.max(1, Math.ceil(count / PRODUCT_PAGE_SIZE)));
+    void setRequestedPage(pageCountForCount(count));
   }
 
   return {
     totalCount,
     pageCount,
     page,
+    pageNumbers,
     visibleProducts,
     changePage,
     goToLastPage,

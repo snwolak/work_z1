@@ -10,40 +10,19 @@ type ProductTablePaginationProps = {
   page: number;
   pageCount: number;
   totalCount: number;
+  pageNumbers: number[];
   onPageChange: (page: number) => void;
   variant?: "bar" | "stacked";
 };
-
-const MAX_VISIBLE_PAGES = 7;
-
-function getVisiblePages(page: number, pageCount: number) {
-  if (pageCount <= MAX_VISIBLE_PAGES) {
-    return Array.from({ length: pageCount }, (_, index) => index + 1);
-  }
-
-  const visiblePages = new Set([
-    1,
-    2,
-    page - 1,
-    page,
-    page + 1,
-    pageCount - 1,
-    pageCount,
-  ]);
-
-  return [...visiblePages]
-    .filter((pageNumber) => pageNumber >= 1 && pageNumber <= pageCount)
-    .sort((a, b) => a - b);
-}
 
 export function ProductTablePagination({
   page,
   pageCount,
   totalCount,
+  pageNumbers,
   onPageChange,
   variant = "bar",
 }: ProductTablePaginationProps) {
-  const pageNumbers = getVisiblePages(page, pageCount);
   const isFirstPage = page <= 1;
   const isLastPage = page >= pageCount;
 

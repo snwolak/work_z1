@@ -34,6 +34,7 @@ import {
   type ProductFeature,
   type ProductManufacturer,
 } from "@/lib/product";
+import { asFormValidator, parseFormSubmit } from "@/lib/validate-form";
 
 export const PRODUCT_BASIC_INFO_FORM_ID = "product-basic-info-form";
 
@@ -71,12 +72,16 @@ type ProductBasicInfoFormProps = {
 export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
   const form = useForm({
     defaultValues,
-    validators: { onSubmit: productBasicInfoSchema },
+    validators: {
+      onSubmit: asFormValidator<ProductBasicInfoFormValues>(
+        productBasicInfoSchema,
+      ),
+    },
     onSubmit: ({ value }) => {
-      const parsed = productBasicInfoSchema.safeParse(value);
+      const data = parseFormSubmit(productBasicInfoSchema, value);
 
-      if (parsed.success) {
-        onSubmit(parsed.data);
+      if (data !== null) {
+        onSubmit(data);
       }
     },
   });

@@ -35,6 +35,7 @@ export function ProductTable() {
     totalCount,
     pageCount,
     page,
+    pageNumbers,
     visibleProducts,
     changePage,
     goToLastPage,
@@ -137,6 +138,7 @@ export function ProductTable() {
               page={page}
               pageCount={pageCount}
               totalCount={totalCount}
+              pageNumbers={pageNumbers}
               onPageChange={changePage}
             />
           </div>
@@ -147,6 +149,7 @@ export function ProductTable() {
               page={page}
               pageCount={pageCount}
               totalCount={totalCount}
+              pageNumbers={pageNumbers}
               onPageChange={changePage}
             />
           </div>

@@ -27,7 +27,7 @@ import {
   type ProductPrice,
   type ProductVatRate,
 } from "@/lib/product";
-import { asFormValidator } from "@/lib/validate-form";
+import { asFormValidator, parseFormSubmit } from "@/lib/validate-form";
 import { useProductPriceSync } from "@/components/products/use-product-price-sync";
 
 export const PRODUCT_PRICE_FORM_ID = "product-price-form";
@@ -67,10 +67,10 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
       onSubmit: asFormValidator<ProductPriceFormValues>(productPriceSchema),
     },
     onSubmit: ({ value }) => {
-      const parsed = productPriceSchema.safeParse(value);
+      const data = parseFormSubmit(productPriceSchema, value);
 
-      if (parsed.success) {
-        onSubmit(parsed.data);
+      if (data !== null) {
+        onSubmit(data);
       }
     },
   });

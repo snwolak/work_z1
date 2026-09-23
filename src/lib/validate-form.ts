@@ -11,3 +11,19 @@ export function asFormValidator<TFormValues>(
 ): z.ZodType<unknown, TFormValues> {
   return schema as z.ZodType<unknown, TFormValues>;
 }
+
+// Submit gate for step forms: the schema already ran as the TanStack
+// onSubmit validator; this narrows the validated values to domain output.
+// Returns null when invalid, so callers forward data with one check.
+export function parseFormSubmit<Output>(
+  schema: {
+    safeParse(
+      value: unknown,
+    ): { success: true; data: Output } | { success: false; error: unknown };
+  },
+  value: unknown,
+): Output | null {
+  const parsed = schema.safeParse(value);
+
+  return parsed.success ? parsed.data : null;
+}

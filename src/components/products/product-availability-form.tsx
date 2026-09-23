@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { productAvailabilitySchema } from "@/lib/product";
 import type { ProductAvailability } from "@/lib/product";
-import { asFormValidator } from "@/lib/validate-form";
+import { asFormValidator, parseFormSubmit } from "@/lib/validate-form";
 
 export const PRODUCT_AVAILABILITY_FORM_ID = "product-availability-form";
 
@@ -50,10 +50,10 @@ export function ProductAvailabilityForm({
       ),
     },
     onSubmit: ({ value }) => {
-      const parsed = productAvailabilitySchema.safeParse(value);
+      const data = parseFormSubmit(productAvailabilitySchema, value);
 
-      if (parsed.success) {
-        onSubmit(parsed.data);
+      if (data !== null) {
+        onSubmit(data);
       }
     },
   });
