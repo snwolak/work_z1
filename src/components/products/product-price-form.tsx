@@ -28,6 +28,7 @@ import {
   type ProductVatRate,
 } from "@/lib/product";
 import { asFormValidator, parseFormSubmit } from "@/lib/validate-form";
+import { isFieldInvalid } from "@/components/products/is-field-invalid";
 import { useProductPriceSync } from "@/components/products/use-product-price-sync";
 
 export const PRODUCT_PRICE_FORM_ID = "product-price-form";
@@ -64,6 +65,9 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
   const form = useForm({
     defaultValues,
     validators: {
+      // Spec: live validation ("na bieżąco"). See basic-info form.
+      onChange: asFormValidator<ProductPriceFormValues>(productPriceSchema),
+      onBlur: asFormValidator<ProductPriceFormValues>(productPriceSchema),
       onSubmit: asFormValidator<ProductPriceFormValues>(productPriceSchema),
     },
     onSubmit: ({ value }) => {
@@ -135,8 +139,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
         <div className="grid gap-4 md:grid-cols-2">
           <form.Field name="netPrice">
             {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+              const isInvalid = isFieldInvalid(field);
 
               return (
                 <Field data-invalid={isInvalid}>
@@ -153,9 +156,13 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                     onChange={(event) => {
                       field.handleChange(event.target.value);
                       handleNetPriceChange(event.target.value);
+                      // Keep per-cause error keys fresh; stale keys linger until blur.
+                      field.handleBlur();
                     }}
                   />
-                  <FieldError errors={field.state.meta.errors} />
+                  <FieldError
+                    errors={isInvalid ? field.state.meta.errors : []}
+                  />
                 </Field>
               );
             }}
@@ -163,8 +170,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
 
           <form.Field name="grossPrice">
             {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+              const isInvalid = isFieldInvalid(field);
 
               return (
                 <Field data-invalid={isInvalid}>
@@ -181,9 +187,13 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                     onChange={(event) => {
                       field.handleChange(event.target.value);
                       handleGrossPriceChange(event.target.value);
+                      // Keep per-cause error keys fresh; stale keys linger until blur.
+                      field.handleBlur();
                     }}
                   />
-                  <FieldError errors={field.state.meta.errors} />
+                  <FieldError
+                    errors={isInvalid ? field.state.meta.errors : []}
+                  />
                 </Field>
               );
             }}
@@ -193,8 +203,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
         <div className="grid gap-4 md:grid-cols-2">
           <form.Field name="vatRate">
             {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+              const isInvalid = isFieldInvalid(field);
 
               return (
                 <Field data-invalid={isInvalid}>
@@ -202,7 +211,11 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                   <Select
                     items={VAT_ITEMS}
                     value={String(field.state.value)}
-                    onValueChange={handleVatRateChange}
+                    onValueChange={(selected) => {
+                      handleVatRateChange(selected);
+                      // Discrete choice: revalidate now, don't wait for blur.
+                      field.handleBlur();
+                    }}
                   >
                     <SelectTrigger
                       id={field.name}
@@ -220,7 +233,9 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FieldError errors={field.state.meta.errors} />
+                  <FieldError
+                    errors={isInvalid ? field.state.meta.errors : []}
+                  />
                 </Field>
               );
             }}
@@ -228,8 +243,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
 
           <form.Field name="currency">
             {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+              const isInvalid = isFieldInvalid(field);
 
               return (
                 <Field data-invalid={isInvalid}>
@@ -240,6 +254,8 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                     onValueChange={(value) => {
                       if (isProductCurrency(value)) {
                         field.handleChange(value);
+                        // Discrete choice: revalidate now, don't wait for blur.
+                        field.handleBlur();
                       }
                     }}
                   >
@@ -259,7 +275,9 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FieldError errors={field.state.meta.errors} />
+                  <FieldError
+                    errors={isInvalid ? field.state.meta.errors : []}
+                  />
                 </Field>
               );
             }}

@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { productAvailabilitySchema } from "@/lib/product";
 import type { ProductAvailability } from "@/lib/product";
 import { asFormValidator, parseFormSubmit } from "@/lib/validate-form";
+import { isFieldInvalid } from "@/components/products/is-field-invalid";
 
 export const PRODUCT_AVAILABILITY_FORM_ID = "product-availability-form";
 
@@ -45,6 +46,13 @@ export function ProductAvailabilityForm({
   const form = useForm({
     defaultValues,
     validators: {
+      // Spec: live validation ("na bieżąco"). See basic-info form.
+      onChange: asFormValidator<ProductAvailabilityFormValues>(
+        productAvailabilitySchema,
+      ),
+      onBlur: asFormValidator<ProductAvailabilityFormValues>(
+        productAvailabilitySchema,
+      ),
       onSubmit: asFormValidator<ProductAvailabilityFormValues>(
         productAvailabilitySchema,
       ),
@@ -117,8 +125,7 @@ export function ProductAvailabilityForm({
             isLimited ? (
               <form.Field name="stockQuantity">
                 {(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  const isInvalid = isFieldInvalid(field);
 
                   return (
                     <Field data-invalid={isInvalid}>
@@ -134,11 +141,15 @@ export function ProductAvailabilityForm({
                         className="h-8 rounded-full"
                         aria-invalid={isInvalid}
                         onBlur={field.handleBlur}
-                        onChange={(event) =>
-                          field.handleChange(event.target.value)
-                        }
+                        onChange={(event) => {
+                          field.handleChange(event.target.value);
+                          // Keep per-cause error keys fresh; stale keys linger until blur.
+                          field.handleBlur();
+                        }}
                       />
-                      <FieldError errors={field.state.meta.errors} />
+                      <FieldError
+                        errors={isInvalid ? field.state.meta.errors : []}
+                      />
                     </Field>
                   );
                 }}
@@ -157,8 +168,7 @@ export function ProductAvailabilityForm({
           <div className="grid gap-4 md:grid-cols-2">
             <form.Field name="minOrderQuantity">
               {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
+                const isInvalid = isFieldInvalid(field);
 
                 return (
                   <Field data-invalid={isInvalid}>
@@ -174,11 +184,15 @@ export function ProductAvailabilityForm({
                       className="h-8 rounded-full"
                       aria-invalid={isInvalid}
                       onBlur={field.handleBlur}
-                      onChange={(event) =>
-                        field.handleChange(event.target.value)
-                      }
+                      onChange={(event) => {
+                        field.handleChange(event.target.value);
+                        // Keep per-cause error keys fresh; stale keys linger until blur.
+                        field.handleBlur();
+                      }}
                     />
-                    <FieldError errors={field.state.meta.errors} />
+                    <FieldError
+                      errors={isInvalid ? field.state.meta.errors : []}
+                    />
                   </Field>
                 );
               }}
@@ -186,8 +200,7 @@ export function ProductAvailabilityForm({
 
             <form.Field name="maxOrderQuantity">
               {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
+                const isInvalid = isFieldInvalid(field);
 
                 return (
                   <Field data-invalid={isInvalid}>
@@ -203,11 +216,15 @@ export function ProductAvailabilityForm({
                       className="h-8 rounded-full"
                       aria-invalid={isInvalid}
                       onBlur={field.handleBlur}
-                      onChange={(event) =>
-                        field.handleChange(event.target.value)
-                      }
+                      onChange={(event) => {
+                        field.handleChange(event.target.value);
+                        // Keep per-cause error keys fresh; stale keys linger until blur.
+                        field.handleBlur();
+                      }}
                     />
-                    <FieldError errors={field.state.meta.errors} />
+                    <FieldError
+                      errors={isInvalid ? field.state.meta.errors : []}
+                    />
                   </Field>
                 );
               }}

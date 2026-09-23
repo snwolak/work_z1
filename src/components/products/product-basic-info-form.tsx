@@ -35,6 +35,7 @@ import {
   type ProductManufacturer,
 } from "@/lib/product";
 import { asFormValidator, parseFormSubmit } from "@/lib/validate-form";
+import { isFieldInvalid } from "@/components/products/is-field-invalid";
 
 export const PRODUCT_BASIC_INFO_FORM_ID = "product-basic-info-form";
 
@@ -73,6 +74,15 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
   const form = useForm({
     defaultValues,
     validators: {
+      // Spec: live validation ("na bieżąco"). Runs on every change/blur;
+      // display stays gated by isFieldInvalid (touched),
+      // so pristine fields don't flash errors mid-typing.
+      onChange: asFormValidator<ProductBasicInfoFormValues>(
+        productBasicInfoSchema,
+      ),
+      onBlur: asFormValidator<ProductBasicInfoFormValues>(
+        productBasicInfoSchema,
+      ),
       onSubmit: asFormValidator<ProductBasicInfoFormValues>(
         productBasicInfoSchema,
       ),
@@ -103,8 +113,7 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
         <div className="grid gap-4 md:grid-cols-2">
           <form.Field name="name">
             {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+              const isInvalid = isFieldInvalid(field);
 
               return (
                 <Field data-invalid={isInvalid}>
@@ -117,9 +126,15 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                     className="h-8 rounded-full"
                     aria-invalid={isInvalid}
                     onBlur={field.handleBlur}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      // Keep per-cause error keys fresh; stale keys linger until blur.
+                      field.handleBlur();
+                    }}
                   />
-                  <FieldError errors={field.state.meta.errors} />
+                  <FieldError
+                    errors={isInvalid ? field.state.meta.errors : []}
+                  />
                 </Field>
               );
             }}
@@ -127,8 +142,7 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
 
           <form.Field name="sku">
             {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+              const isInvalid = isFieldInvalid(field);
 
               return (
                 <Field data-invalid={isInvalid}>
@@ -141,9 +155,15 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                     className="h-8 rounded-full"
                     aria-invalid={isInvalid}
                     onBlur={field.handleBlur}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      // Keep per-cause error keys fresh; stale keys linger until blur.
+                      field.handleBlur();
+                    }}
                   />
-                  <FieldError errors={field.state.meta.errors} />
+                  <FieldError
+                    errors={isInvalid ? field.state.meta.errors : []}
+                  />
                 </Field>
               );
             }}
@@ -151,28 +171,36 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
         </div>
 
         <form.Field name="description">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor={field.name}>Opis produktu</FieldLabel>
-              <Textarea
-                id={field.name}
-                name={field.name}
-                value={field.state.value}
-                placeholder="Krótki opis produktu"
-                className="min-h-16"
-                onBlur={field.handleBlur}
-                onChange={(event) => field.handleChange(event.target.value)}
-              />
-              <FieldError errors={field.state.meta.errors} />
-            </Field>
-          )}
+          {(field) => {
+            const isInvalid = isFieldInvalid(field);
+
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Opis produktu</FieldLabel>
+                <Textarea
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  placeholder="Krótki opis produktu"
+                  className="min-h-16"
+                  aria-invalid={isInvalid}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => {
+                    field.handleChange(event.target.value);
+                    // Keep per-cause error keys fresh; stale keys linger until blur.
+                    field.handleBlur();
+                  }}
+                />
+                <FieldError errors={isInvalid ? field.state.meta.errors : []} />
+              </Field>
+            );
+          }}
         </form.Field>
 
         <div className="grid gap-4 md:grid-cols-2">
           <form.Field name="manufacturer">
             {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+              const isInvalid = isFieldInvalid(field);
 
               return (
                 <Field data-invalid={isInvalid}>
@@ -183,6 +211,8 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                     onValueChange={(value) => {
                       if (isProductManufacturer(value)) {
                         field.handleChange(value);
+                        // Discrete choice: revalidate now, don't wait for blur.
+                        field.handleBlur();
                       }
                     }}
                   >
@@ -202,7 +232,9 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FieldError errors={field.state.meta.errors} />
+                  <FieldError
+                    errors={isInvalid ? field.state.meta.errors : []}
+                  />
                 </Field>
               );
             }}
@@ -210,8 +242,7 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
 
           <form.Field name="category">
             {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+              const isInvalid = isFieldInvalid(field);
 
               return (
                 <Field data-invalid={isInvalid}>
@@ -222,6 +253,8 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                     onValueChange={(value) => {
                       if (isProductCategory(value)) {
                         field.handleChange(value);
+                        // Discrete choice: revalidate now, don't wait for blur.
+                        field.handleBlur();
                       }
                     }}
                   >
@@ -241,7 +274,9 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FieldError errors={field.state.meta.errors} />
+                  <FieldError
+                    errors={isInvalid ? field.state.meta.errors : []}
+                  />
                 </Field>
               );
             }}
@@ -250,8 +285,7 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
 
         <form.Field name="features">
           {(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
+            const isInvalid = isFieldInvalid(field);
 
             return (
               <Field data-invalid={isInvalid}>
@@ -261,13 +295,16 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                   variant="outline"
                   value={field.state.value}
                   className="flex-wrap"
-                  onValueChange={(selected) =>
+                  onBlur={field.handleBlur}
+                  onValueChange={(selected) => {
                     field.handleChange(
                       selected.filter((feature): feature is ProductFeature =>
                         isProductFeature(feature),
                       ),
-                    )
-                  }
+                    );
+                    // Discrete choice: revalidate now, don't wait for blur.
+                    field.handleBlur();
+                  }}
                 >
                   {PRODUCT_FEATURES.map((feature) => (
                     <ToggleGroupItem
@@ -279,7 +316,7 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
-                <FieldError errors={field.state.meta.errors} />
+                <FieldError errors={isInvalid ? field.state.meta.errors : []} />
               </Field>
             );
           }}
