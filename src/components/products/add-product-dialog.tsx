@@ -1,49 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 
+import { ProductAvailabilityForm } from "@/components/products/product-availability-form";
+import { ProductBasicInfoForm } from "@/components/products/product-basic-info-form";
+import { ProductPriceForm } from "@/components/products/product-price-form";
 import {
-  PRODUCT_BASIC_INFO_FORM_ID,
-  ProductBasicInfoForm,
-} from "@/components/products/product-basic-info-form";
-import {
-  PRODUCT_AVAILABILITY_FORM_ID,
-  ProductAvailabilityForm,
-} from "@/components/products/product-availability-form";
-import {
-  PRODUCT_PRICE_FORM_ID,
-  ProductPriceForm,
-} from "@/components/products/product-price-form";
+  ADD_PRODUCT_STEPS,
+  useAddProductWizard,
+} from "@/components/products/use-add-product-wizard";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
-import type {
-  Product,
-  ProductAvailability,
-  ProductBasicInfo,
-  ProductPrice,
-} from "@/lib/product";
 import { cn } from "@/lib/utils";
-import { useProductStore } from "@/store/product-store";
-
-const STEPS = [
-  {
-    title: "Informacje",
-    description: "Dane podstawowe",
-    formId: PRODUCT_BASIC_INFO_FORM_ID,
-  },
-  {
-    title: "Cena",
-    description: "Dane cenowe",
-    formId: PRODUCT_PRICE_FORM_ID,
-  },
-  {
-    title: "Dostępność",
-    description: "Stany magazynowe",
-    formId: PRODUCT_AVAILABILITY_FORM_ID,
-  },
-] as const;
 
 type AddProductDialogProps = {
   open: boolean;
@@ -51,49 +19,35 @@ type AddProductDialogProps = {
   onProductAdded?: () => void;
 };
 
-function createProductId() {
-  return `prd_${crypto.randomUUID()}`;
-}
-
 export function AddProductDialog({
   open,
   onOpenChange,
   onProductAdded,
 }: AddProductDialogProps) {
-  const addProduct = useProductStore((state) => state.addProduct);
-  const [step, setStep] = useState(0);
-  const [basicInfo, setBasicInfo] = useState<ProductBasicInfo | null>(null);
-  const [price, setPrice] = useState<ProductPrice | null>(null);
-  const isFirstStep = step === 0;
-  const isLastStep = step === STEPS.length - 1;
-  const activeFormId = STEPS[step]?.formId ?? PRODUCT_BASIC_INFO_FORM_ID;
+  const {
+    step,
+    formResetKey,
+    isFirstStep,
+    isLastStep,
+    activeFormId,
+    submitBasicInfo,
+    submitPrice,
+    submitAvailability,
+    goBack,
+    reset,
+  } = useAddProductWizard({
+    onProductAdded,
+    onClose: () => onOpenChange(false),
+  });
 
   function handleOpenChange(nextOpen: boolean) {
-    onOpenChange(nextOpen);
-
     if (!nextOpen) {
-      setStep(0);
-      setBasicInfo(null);
-      setPrice(null);
-    }
-  }
-
-  function handleAvailabilitySubmit(availability: ProductAvailability) {
-    if (!basicInfo || !price) {
+      reset();
+      onOpenChange(false);
       return;
     }
 
-    const product: Product = {
-      id: createProductId(),
-      ...basicInfo,
-      ...price,
-      ...availability,
-    };
-
-    addProduct(product);
-    toast.add({ type: "success", title: "Produkt został dodany" });
-    onProductAdded?.();
-    handleOpenChange(false);
+    onOpenChange(nextOpen);
   }
 
   return (
@@ -124,7 +78,7 @@ export function AddProductDialog({
 
           <div className="px-4 pt-3 md:border-b md:border-[#E5E5E5] md:pb-3">
             <ol className="flex items-start gap-4 md:items-center">
-              {STEPS.map((wizardStep, index) => {
+              {ADD_PRODUCT_STEPS.map((wizardStep, index) => {
                 const isCompleted = index < step;
                 const isCurrent = index === step;
 
@@ -190,24 +144,23 @@ export function AddProductDialog({
           <div className="flex-1 overflow-y-auto px-4 py-5">
             <div hidden={step !== 0}>
               <ProductBasicInfoForm
-                onSubmit={(value) => {
-                  setBasicInfo(value);
-                  setStep(1);
-                }}
+                key={`basic-${formResetKey}`}
+                onSubmit={submitBasicInfo}
               />
             </div>
 
             <div hidden={step !== 1}>
               <ProductPriceForm
-                onSubmit={(value) => {
-                  setPrice(value);
-                  setStep(2);
-                }}
+                key={`price-${formResetKey}`}
+                onSubmit={submitPrice}
               />
             </div>
 
             <div hidden={step !== 2}>
-              <ProductAvailabilityForm onSubmit={handleAvailabilitySubmit} />
+              <ProductAvailabilityForm
+                key={`availability-${formResetKey}`}
+                onSubmit={submitAvailability}
+              />
             </div>
           </div>
 
@@ -222,7 +175,7 @@ export function AddProductDialog({
                 type="button"
                 variant="outline"
                 className="h-9 gap-1.5 rounded-full px-4 text-sm font-medium"
-                onClick={() => setStep(step - 1)}
+                onClick={goBack}
               >
                 <ArrowLeft className="size-4" aria-hidden="true" />
                 Wstecz
