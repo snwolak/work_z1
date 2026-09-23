@@ -45,19 +45,27 @@ type StepFormSchema<Output> = StandardSchemaV1<unknown, unknown> & {
 };
 
 // Single source of truth for step-form wiring: live validation
-// ("na bieżąco") runs on every change/blur, display stays gated by
+// runs on every change, display stays gated by
 // isFieldInvalid (touched). Replaces the per-form triple
 // asFormValidator onChange/onBlur/onSubmit repetition.
+//
+// Deliberately NO onBlur validator: TanStack stores validator results per
+// cause (onChange/onBlur/onSubmit) and derives field errors as the union of
+// all keys. Peer-synced fields (net/gross price) are updated
+// programmatically via setFieldValue, which re-runs change/submit
+// validation but never blur validation — so a blur-keyed copy of the same
+// schema's error went stale and displayed a phantom error on the peer until
+// the peer itself was blurred. One live validator = no stale copies.
+// Blur still marks fields touched (display gating); submit still validates
+// everything.
 export function stepFormValidators<TFormValues>(
   schema: StandardSchemaV1<unknown, unknown>,
 ): {
   onChange: StandardSchemaV1<TFormValues, unknown>;
-  onBlur: StandardSchemaV1<TFormValues, unknown>;
   onSubmit: StandardSchemaV1<TFormValues, unknown>;
 } {
   return {
     onChange: asFormValidator<TFormValues>(schema),
-    onBlur: asFormValidator<TFormValues>(schema),
     onSubmit: asFormValidator<TFormValues>(schema),
   };
 }

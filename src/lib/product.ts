@@ -103,6 +103,17 @@ const DECIMAL_SEPARATOR = ",";
 const PRICE_DECIMALS = 2;
 const PRICE_TOLERANCE = 0.005;
 
+const MULTIPLE_SEPARATORS_MESSAGE =
+  "Podaj liczbę z co najwyżej jednym separatorem dziesiętnym.";
+
+function normalizeDecimalSeparator(value: string): string {
+  return value.replaceAll(DECIMAL_SEPARATOR, ".");
+}
+
+function hasMultipleDecimalSeparators(value: unknown): boolean {
+  return typeof value === "string" && (value.match(/\./g) ?? []).length > 1;
+}
+
 export function calcGrossPrice(
   netPrice: number,
   vatRate: ProductVatRate,
@@ -124,7 +135,7 @@ export function parseDecimalInput(value: string): number | null {
     return null;
   }
 
-  const parsed = Number(trimmed.replace(DECIMAL_SEPARATOR, "."));
+  const parsed = Number(normalizeDecimalSeparator(trimmed));
 
   return Number.isNaN(parsed) ? null : parsed;
 }
@@ -181,7 +192,7 @@ function toNumberInput(value: unknown): unknown {
     return undefined;
   }
 
-  const normalized = trimmed.replace(DECIMAL_SEPARATOR, ".");
+  const normalized = normalizeDecimalSeparator(trimmed);
   const parsed = Number(normalized);
 
   return Number.isNaN(parsed) ? normalized : parsed;
@@ -192,7 +203,16 @@ function numberField(params: {
   integer?: string | undefined;
   nonnegative?: string | undefined;
 }): z.ZodType<number, unknown> {
-  let schema = z.number({ message: params.invalid });
+  // Custom error (instead of `message`): at this point the input already went
+  // through toNumberInput, so every comma is a dot. More than one dot means
+  // the user typed multiple decimal separators ("1,2,3", "1.2.3") — that gets
+  // a dedicated message instead of the misleading generic "invalid" one.
+  let schema = z.number({
+    error: (issue) =>
+      hasMultipleDecimalSeparators(issue.input)
+        ? MULTIPLE_SEPARATORS_MESSAGE
+        : params.invalid,
+  });
 
   if (params.integer) {
     schema = schema.int(params.integer);
