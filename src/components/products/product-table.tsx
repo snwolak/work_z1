@@ -9,6 +9,7 @@ import { ProductStatusBadge } from "@/components/products/product-status-badge";
 import { ProductTablePagination } from "@/components/products/product-table-pagination";
 import { useProductPagination } from "@/components/products/use-product-pagination";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatProductCount } from "@/lib/format-product";
 import { toProductListViewModels } from "@/lib/product-list-view";
 import { cn } from "@/lib/utils";
@@ -37,11 +38,35 @@ export function ProductTable() {
     page,
     pageNumbers,
     visibleProducts,
+    isReady,
     changePage,
     goToLastPage,
   } = useProductPagination();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const visibleItems = toProductListViewModels(visibleProducts);
+
+  // Skeleton until the persisted catalog loads: the store boots from the
+  // seed, so rendering immediately would flash the wrong (clamped) page
+  // before rehydration swaps in the real products.
+  if (!isReady) {
+    return (
+      <section
+        aria-busy="true"
+        aria-live="polite"
+        className="mx-auto flex w-full max-w-[1240px] flex-col gap-4 px-4 py-6 sm:px-6 md:gap-6 lg:px-0 lg:py-[50px]"
+      >
+        <span className="sr-only">Ładowanie produktów…</span>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-7 w-32" />
+            <Skeleton className="h-5 w-44" />
+          </div>
+          <Skeleton className="h-9 w-36 rounded-full" />
+        </div>
+        <Skeleton className="h-72 w-full rounded-lg" />
+      </section>
+    );
+  }
 
   return (
     <section className="mx-auto flex w-full max-w-[1240px] flex-col gap-4 px-4 py-6 sm:px-6 md:gap-6 lg:px-0 lg:py-[50px]">
