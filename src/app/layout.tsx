@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
+import { RehydrateProductStore } from "@/components/products/rehydrate-product-store";
 import { Toaster } from "@/components/ui/toast";
 import "./globals.css";
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
       <body>
+        <RehydrateProductStore />
         <NuqsAdapter>{children}</NuqsAdapter>
         <Toaster />
       </body>

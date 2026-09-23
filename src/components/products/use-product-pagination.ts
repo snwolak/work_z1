@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { parseAsInteger, useQueryState } from "nuqs";
 
 import {
@@ -21,11 +21,23 @@ export function useProductPagination() {
   const visibleProducts = sliceForPage(products, page);
   const pageNumbers = getVisiblePages(page, pageCount);
 
+  // The store hydrates after mount (skipHydration): clamping against the
+  // seed would rewrite a valid ?page= based on transient state. Only
+  // normalize the URL once persisted products are loaded.
+  const [isHydrated, setIsHydrated] = useState(() =>
+    useProductStore.persist.hasHydrated(),
+  );
+
+  useEffect(
+    () => useProductStore.persist.onFinishHydration(() => setIsHydrated(true)),
+    [],
+  );
+
   useEffect(() => {
-    if (requestedPage !== page) {
+    if (isHydrated && requestedPage !== page) {
       void setRequestedPage(page);
     }
-  }, [requestedPage, page, setRequestedPage]);
+  }, [isHydrated, requestedPage, page, setRequestedPage]);
 
   // Handlers read getState() for a fresh count: closures may hold products
   // from before the write they respond to (e.g. goToLastPage after add).
