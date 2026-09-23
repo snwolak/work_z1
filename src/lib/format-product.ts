@@ -41,13 +41,3 @@ export function formatProductCount(count: number): string {
 
   return `${count} ${isFew ? "produkty" : "produktów"}`;
 }
-
-export function formatStockQuantity(product: Product): string {
-  if (!product.isLimited) {
-    return "—";
-  }
-
-  const stockQuantity: unknown = product.stockQuantity;
-
-  return typeof stockQuantity === "number" ? String(stockQuantity) : "—";
-}

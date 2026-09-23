@@ -1,20 +1,24 @@
 import { cn } from "@/lib/utils";
+import type { ProductListStatus } from "@/lib/product-list-view";
 
-type ProductStatusBadgeProps = {
-  isAvailable: boolean;
+const TONE_CLASSES: Record<ProductListStatus["tone"], string> = {
+  available: "bg-[#E8F6ED] text-[#16A34A]",
+  unavailable: "bg-destructive/10 text-destructive",
 };
 
-export function ProductStatusBadge({ isAvailable }: ProductStatusBadgeProps) {
+type ProductStatusBadgeProps = {
+  status: ProductListStatus;
+};
+
+export function ProductStatusBadge({ status }: ProductStatusBadgeProps) {
   return (
     <span
       className={cn(
         "inline-flex h-5 items-center rounded-full px-2 text-xs font-medium",
-        isAvailable
-          ? "bg-[#E8F6ED] text-[#16A34A]"
-          : "bg-destructive/10 text-destructive",
+        TONE_CLASSES[status.tone],
       )}
     >
-      {isAvailable ? "Dostępny" : "Niedostępny"}
+      {status.label}
     </span>
   );
 }

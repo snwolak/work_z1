@@ -9,12 +9,8 @@ import { ProductStatusBadge } from "@/components/products/product-status-badge";
 import { ProductTablePagination } from "@/components/products/product-table-pagination";
 import { useProductPagination } from "@/components/products/use-product-pagination";
 import { Button } from "@/components/ui/button";
-import {
-  formatGrossPrice,
-  formatProductCount,
-  formatStockQuantity,
-} from "@/lib/format-product";
-import { PRODUCT_CATEGORY_LABELS } from "@/lib/product";
+import { formatProductCount } from "@/lib/format-product";
+import { toProductListViewModels } from "@/lib/product-list-view";
 import { cn } from "@/lib/utils";
 
 const columns = [
@@ -44,6 +40,7 @@ export function ProductTable() {
     goToLastPage,
   } = useProductPagination();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const visibleItems = toProductListViewModels(visibleProducts);
 
   return (
     <section className="mx-auto flex w-full max-w-[1240px] flex-col gap-4 px-4 py-6 sm:px-6 md:gap-6 lg:px-0 lg:py-[50px]">
@@ -86,7 +83,7 @@ export function ProductTable() {
         </div>
       ) : (
         <>
-          <ProductCards products={visibleProducts} />
+          <ProductCards items={visibleItems} />
 
           <div className="hidden overflow-hidden rounded-lg border bg-card shadow-xs md:block">
             <div className="overflow-x-auto">
@@ -108,29 +105,27 @@ export function ProductTable() {
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleProducts.map((product) => (
-                    <tr key={product.id} className="border-b last:border-b">
+                  {visibleItems.map((item) => (
+                    <tr key={item.id} className="border-b last:border-b">
                       <td className="h-12 px-4 text-sm font-medium text-foreground">
-                        <span className="block truncate">{product.name}</span>
+                        <span className="block truncate">{item.name}</span>
                       </td>
                       <td className="h-12 px-4 text-xs text-muted-foreground">
-                        <span className="block truncate">{product.sku}</span>
+                        <span className="block truncate">{item.sku}</span>
                       </td>
                       <td className="h-12 px-4 text-sm text-muted-foreground">
-                        <span className="block truncate">
-                          {PRODUCT_CATEGORY_LABELS[product.category]}
-                        </span>
+                        <span className="block truncate">{item.category}</span>
                       </td>
                       <td className="h-12 px-4 text-sm font-medium text-foreground">
                         <span className="block truncate">
-                          {formatGrossPrice(product)}
+                          {item.grossPrice}
                         </span>
                       </td>
                       <td className="h-12 px-4">
-                        <ProductStatusBadge isAvailable={product.isAvailable} />
+                        <ProductStatusBadge status={item.status} />
                       </td>
                       <td className="h-12 px-4 text-sm text-foreground">
-                        {formatStockQuantity(product)}
+                        {item.stock}
                       </td>
                     </tr>
                   ))}
