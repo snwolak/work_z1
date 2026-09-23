@@ -8,7 +8,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { ProductTextField } from "@/components/products/product-text-field";
 import {
   Select,
   SelectContent,
@@ -60,7 +60,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
   });
   const priceSync = useProductPriceSync();
 
-  function handleNetPriceChange(rawNetPrice: string) {
+  function handleNetPriceChange(rawNetPrice: string): void {
     const vatRate = form.getFieldValue("vatRate");
     const peer = priceSync.onNetPriceChange(rawNetPrice, vatRate);
 
@@ -69,7 +69,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
     }
   }
 
-  function handleGrossPriceChange(rawGrossPrice: string) {
+  function handleGrossPriceChange(rawGrossPrice: string): void {
     const vatRate = form.getFieldValue("vatRate");
     const peer = priceSync.onGrossPriceChange(rawGrossPrice, vatRate);
 
@@ -78,7 +78,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
     }
   }
 
-  function handleVatRateChange(selected: string | null) {
+  function handleVatRateChange(selected: string | null): void {
     if (!selected) {
       return;
     }
@@ -116,65 +116,27 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
       <FieldGroup className="gap-4">
         <div className="grid gap-4 md:grid-cols-2">
           <form.Field name="netPrice">
-            {(field) => {
-              const isInvalid = isFieldInvalid(field);
-
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Cena netto</FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    placeholder="0.00"
-                    inputMode="decimal"
-                    className="h-8 rounded-full"
-                    aria-invalid={isInvalid}
-                    onBlur={field.handleBlur}
-                    onChange={(event) => {
-                      field.handleChange(event.target.value);
-                      handleNetPriceChange(event.target.value);
-                      // Keep per-cause error keys fresh; stale keys linger until blur.
-                      field.handleBlur();
-                    }}
-                  />
-                  <FieldError
-                    errors={isInvalid ? field.state.meta.errors : []}
-                  />
-                </Field>
-              );
-            }}
+            {(field) => (
+              <ProductTextField
+                field={field}
+                label="Cena netto"
+                placeholder="0.00"
+                inputMode="decimal"
+                onValueChange={handleNetPriceChange}
+              />
+            )}
           </form.Field>
 
           <form.Field name="grossPrice">
-            {(field) => {
-              const isInvalid = isFieldInvalid(field);
-
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Cena brutto</FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    placeholder="0.00"
-                    inputMode="decimal"
-                    className="h-8 rounded-full"
-                    aria-invalid={isInvalid}
-                    onBlur={field.handleBlur}
-                    onChange={(event) => {
-                      field.handleChange(event.target.value);
-                      handleGrossPriceChange(event.target.value);
-                      // Keep per-cause error keys fresh; stale keys linger until blur.
-                      field.handleBlur();
-                    }}
-                  />
-                  <FieldError
-                    errors={isInvalid ? field.state.meta.errors : []}
-                  />
-                </Field>
-              );
-            }}
+            {(field) => (
+              <ProductTextField
+                field={field}
+                label="Cena brutto"
+                placeholder="0.00"
+                inputMode="decimal"
+                onValueChange={handleGrossPriceChange}
+              />
+            )}
           </form.Field>
         </div>
 

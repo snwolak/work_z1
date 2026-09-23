@@ -5,18 +5,16 @@ import { useForm } from "@tanstack/react-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
-  FieldError,
   FieldGroup,
   FieldLabel,
   FieldTitle,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { ProductTextField } from "@/components/products/product-text-field";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { productAvailabilitySchema } from "@/lib/product";
 import type { ProductAvailability } from "@/lib/product";
 import { stepFormValidators, submitStepForm } from "@/lib/validate-form";
-import { isFieldInvalid } from "@/components/products/is-field-invalid";
 
 export const PRODUCT_AVAILABILITY_FORM_ID = "product-availability-form";
 
@@ -109,35 +107,14 @@ export function ProductAvailabilityForm({
           {(isLimited) =>
             isLimited ? (
               <form.Field name="stockQuantity">
-                {(field) => {
-                  const isInvalid = isFieldInvalid(field);
-
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={field.name}>
-                        Ilość na magazynie
-                      </FieldLabel>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        value={field.state.value}
-                        placeholder="0"
-                        inputMode="numeric"
-                        className="h-8 rounded-full"
-                        aria-invalid={isInvalid}
-                        onBlur={field.handleBlur}
-                        onChange={(event) => {
-                          field.handleChange(event.target.value);
-                          // Keep per-cause error keys fresh; stale keys linger until blur.
-                          field.handleBlur();
-                        }}
-                      />
-                      <FieldError
-                        errors={isInvalid ? field.state.meta.errors : []}
-                      />
-                    </Field>
-                  );
-                }}
+                {(field) => (
+                  <ProductTextField
+                    field={field}
+                    label="Ilość na magazynie"
+                    placeholder="0"
+                    inputMode="numeric"
+                  />
+                )}
               </form.Field>
             ) : null
           }
@@ -152,67 +129,25 @@ export function ProductAvailabilityForm({
 
           <div className="grid gap-4 md:grid-cols-2">
             <form.Field name="minOrderQuantity">
-              {(field) => {
-                const isInvalid = isFieldInvalid(field);
-
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>
-                      Minimalna ilość
-                    </FieldLabel>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      placeholder="1"
-                      inputMode="numeric"
-                      className="h-8 rounded-full"
-                      aria-invalid={isInvalid}
-                      onBlur={field.handleBlur}
-                      onChange={(event) => {
-                        field.handleChange(event.target.value);
-                        // Keep per-cause error keys fresh; stale keys linger until blur.
-                        field.handleBlur();
-                      }}
-                    />
-                    <FieldError
-                      errors={isInvalid ? field.state.meta.errors : []}
-                    />
-                  </Field>
-                );
-              }}
+              {(field) => (
+                <ProductTextField
+                  field={field}
+                  label="Minimalna ilość"
+                  placeholder="1"
+                  inputMode="numeric"
+                />
+              )}
             </form.Field>
 
             <form.Field name="maxOrderQuantity">
-              {(field) => {
-                const isInvalid = isFieldInvalid(field);
-
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>
-                      Maksymalna ilość
-                    </FieldLabel>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      placeholder="10"
-                      inputMode="numeric"
-                      className="h-8 rounded-full"
-                      aria-invalid={isInvalid}
-                      onBlur={field.handleBlur}
-                      onChange={(event) => {
-                        field.handleChange(event.target.value);
-                        // Keep per-cause error keys fresh; stale keys linger until blur.
-                        field.handleBlur();
-                      }}
-                    />
-                    <FieldError
-                      errors={isInvalid ? field.state.meta.errors : []}
-                    />
-                  </Field>
-                );
-              }}
+              {(field) => (
+                <ProductTextField
+                  field={field}
+                  label="Maksymalna ilość"
+                  placeholder="10"
+                  inputMode="numeric"
+                />
+              )}
             </form.Field>
           </div>
         </div>

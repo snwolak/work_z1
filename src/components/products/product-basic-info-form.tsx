@@ -8,7 +8,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { ProductTextField } from "@/components/products/product-text-field";
 import {
   Select,
   SelectContent,
@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   PRODUCT_CATEGORY_ITEMS,
@@ -83,89 +82,35 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
       <FieldGroup className="gap-4">
         <div className="grid gap-4 md:grid-cols-2">
           <form.Field name="name">
-            {(field) => {
-              const isInvalid = isFieldInvalid(field);
-
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Nazwa produktu</FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    placeholder="np. MacBook Pro 14"
-                    className="h-8 rounded-full"
-                    aria-invalid={isInvalid}
-                    onBlur={field.handleBlur}
-                    onChange={(event) => {
-                      field.handleChange(event.target.value);
-                      // Keep per-cause error keys fresh; stale keys linger until blur.
-                      field.handleBlur();
-                    }}
-                  />
-                  <FieldError
-                    errors={isInvalid ? field.state.meta.errors : []}
-                  />
-                </Field>
-              );
-            }}
+            {(field) => (
+              <ProductTextField
+                field={field}
+                label="Nazwa produktu"
+                placeholder="np. MacBook Pro 14"
+              />
+            )}
           </form.Field>
 
           <form.Field name="sku">
-            {(field) => {
-              const isInvalid = isFieldInvalid(field);
-
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>SKU produktu</FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    placeholder="np. MBP14M3PRO"
-                    className="h-8 rounded-full"
-                    aria-invalid={isInvalid}
-                    onBlur={field.handleBlur}
-                    onChange={(event) => {
-                      field.handleChange(event.target.value);
-                      // Keep per-cause error keys fresh; stale keys linger until blur.
-                      field.handleBlur();
-                    }}
-                  />
-                  <FieldError
-                    errors={isInvalid ? field.state.meta.errors : []}
-                  />
-                </Field>
-              );
-            }}
+            {(field) => (
+              <ProductTextField
+                field={field}
+                label="SKU produktu"
+                placeholder="np. MBP14M3PRO"
+              />
+            )}
           </form.Field>
         </div>
 
         <form.Field name="description">
-          {(field) => {
-            const isInvalid = isFieldInvalid(field);
-
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>Opis produktu</FieldLabel>
-                <Textarea
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  placeholder="Krótki opis produktu"
-                  className="min-h-16"
-                  aria-invalid={isInvalid}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => {
-                    field.handleChange(event.target.value);
-                    // Keep per-cause error keys fresh; stale keys linger until blur.
-                    field.handleBlur();
-                  }}
-                />
-                <FieldError errors={isInvalid ? field.state.meta.errors : []} />
-              </Field>
-            );
-          }}
+          {(field) => (
+            <ProductTextField
+              field={field}
+              label="Opis produktu"
+              placeholder="Krótki opis produktu"
+              multiline
+            />
+          )}
         </form.Field>
 
         <div className="grid gap-4 md:grid-cols-2">
