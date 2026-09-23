@@ -24,14 +24,19 @@ export function useProductPagination() {
   // The store hydrates after mount (skipHydration): clamping against the
   // seed would rewrite a valid ?page= based on transient state. Only
   // normalize the URL once persisted products are loaded.
-  const [isHydrated, setIsHydrated] = useState(() =>
-    useProductStore.persist.hasHydrated(),
+  const [isHydrated, setIsHydrated] = useState(
+    () => useProductStore.persist?.hasHydrated() ?? false,
   );
 
-  useEffect(
-    () => useProductStore.persist.onFinishHydration(() => setIsHydrated(true)),
-    [],
-  );
+  useEffect(() => {
+    // Optional chaining: render phase must survive a store without the
+    // persist middleware (e.g. stale dev SSR chunk after edits).
+    const unsubscribe = useProductStore.persist?.onFinishHydration(() =>
+      setIsHydrated(true),
+    );
+
+    return () => unsubscribe?.();
+  }, []);
 
   useEffect(() => {
     if (isHydrated && requestedPage !== page) {

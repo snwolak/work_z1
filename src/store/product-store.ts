@@ -50,7 +50,7 @@ export const useProductStore = create<ProductStore>()(
 // left persist write-only. Mount this hook once, e.g. in the root layout.
 export function useRehydrateProductStore() {
   useEffect(() => {
-    void useProductStore.persist.rehydrate();
+    void useProductStore.persist?.rehydrate();
   }, []);
 }
 
@@ -58,7 +58,7 @@ if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
   // Watchdog: skipHydration fails silently when rehydrate() is never called.
   // Never let that failure mode be quiet again.
   window.setTimeout(() => {
-    if (!useProductStore.persist.hasHydrated()) {
+    if (!(useProductStore.persist?.hasHydrated() ?? false)) {
       console.warn(
         "[product-store] persist did not hydrate within 3s. " +
           "Ensure useRehydrateProductStore() is mounted, e.g. in the root layout.",
