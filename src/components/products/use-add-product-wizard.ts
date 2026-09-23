@@ -32,7 +32,7 @@ export const ADD_PRODUCT_STEPS = [
   },
 ] as const;
 
-function createProductId() {
+function createProductId(): string {
   return `prd_${crypto.randomUUID()}`;
 }
 
@@ -56,33 +56,33 @@ export function useAddProductWizard({
   const activeFormId =
     ADD_PRODUCT_STEPS[step]?.formId ?? PRODUCT_BASIC_INFO_FORM_ID;
 
-  function reset() {
+  function reset(): void {
     setStep(0);
     setBasicInfo(null);
     setPrice(null);
     setFormResetKey((key) => key + 1);
   }
 
-  function close() {
+  function close(): void {
     reset();
     onClose();
   }
 
-  function submitBasicInfo(value: ProductBasicInfo) {
+  function submitBasicInfo(value: ProductBasicInfo): void {
     setBasicInfo(value);
     setStep(1);
   }
 
-  function submitPrice(value: ProductPrice) {
+  function submitPrice(value: ProductPrice): void {
     setPrice(value);
     setStep(2);
   }
 
-  function goBack() {
+  function goBack(): void {
     setStep((current) => Math.max(0, current - 1));
   }
 
-  function submitAvailability(availability: ProductAvailability) {
+  function submitAvailability(availability: ProductAvailability): void {
     if (!basicInfo) {
       setStep(0);
       return;

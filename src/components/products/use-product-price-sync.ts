@@ -11,7 +11,7 @@ import {
 
 export type PriceEditSide = "netPrice" | "grossPrice";
 
-function isEmptyInput(raw: string) {
+function isEmptyInput(raw: string): boolean {
   return raw.trim() === "";
 }
 
@@ -64,13 +64,19 @@ export function resolveVatPeerUpdate(args: {
 export function useProductPriceSync() {
   const lastEdited = useRef<PriceEditSide>("netPrice");
 
-  function onNetPriceChange(rawNetPrice: string, vatRate: ProductVatRate) {
+  function onNetPriceChange(
+    rawNetPrice: string,
+    vatRate: ProductVatRate,
+  ): string | null {
     lastEdited.current = "netPrice";
 
     return deriveGrossPeer(rawNetPrice, vatRate);
   }
 
-  function onGrossPriceChange(rawGrossPrice: string, vatRate: ProductVatRate) {
+  function onGrossPriceChange(
+    rawGrossPrice: string,
+    vatRate: ProductVatRate,
+  ): string | null {
     lastEdited.current = "grossPrice";
 
     return deriveNetPeer(rawGrossPrice, vatRate);
@@ -80,7 +86,7 @@ export function useProductPriceSync() {
     netRaw: string;
     grossRaw: string;
     vatRate: ProductVatRate;
-  }) {
+  }): { name: PriceEditSide; value: string } | null {
     return resolveVatPeerUpdate({ ...args, lastEdited: lastEdited.current });
   }
 

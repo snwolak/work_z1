@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { productAvailabilitySchema } from "@/lib/product";
 import type { ProductAvailability } from "@/lib/product";
-import { asFormValidator, parseFormSubmit } from "@/lib/validate-form";
+import { stepFormValidators, submitStepForm } from "@/lib/validate-form";
 import { isFieldInvalid } from "@/components/products/is-field-invalid";
 
 export const PRODUCT_AVAILABILITY_FORM_ID = "product-availability-form";
@@ -45,26 +45,11 @@ export function ProductAvailabilityForm({
 }: ProductAvailabilityFormProps) {
   const form = useForm({
     defaultValues,
-    validators: {
-      // Spec: live validation ("na bieżąco"). See basic-info form.
-      onChange: asFormValidator<ProductAvailabilityFormValues>(
-        productAvailabilitySchema,
-      ),
-      onBlur: asFormValidator<ProductAvailabilityFormValues>(
-        productAvailabilitySchema,
-      ),
-      onSubmit: asFormValidator<ProductAvailabilityFormValues>(
-        productAvailabilitySchema,
-      ),
-    },
+    validators: stepFormValidators<ProductAvailabilityFormValues>(
+      productAvailabilitySchema,
+    ),
     onSubmit: ({ value }) => {
-      const parsed = parseFormSubmit(productAvailabilitySchema, value);
-
-      if (!parsed.success) {
-        return;
-      }
-
-      onSubmit(parsed.data);
+      submitStepForm(productAvailabilitySchema, value, onSubmit);
     },
   });
 

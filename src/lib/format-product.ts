@@ -2,7 +2,7 @@ import type { Product } from "@/lib/product";
 
 const priceFormatters = new Map<Product["currency"], Intl.NumberFormat>();
 
-function priceFormatter(currency: Product["currency"]) {
+function priceFormatter(currency: Product["currency"]): Intl.NumberFormat {
   const cached = priceFormatters.get(currency);
 
   if (cached) {

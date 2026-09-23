@@ -37,3 +37,44 @@ export function parseFormSubmit<Output>(
 ): { success: true; data: Output } | { success: false; error: z.ZodError } {
   return schema.safeParse(value);
 }
+
+type StepFormSchema<Output> = StandardSchemaV1<unknown, unknown> & {
+  safeParse(
+    value: unknown,
+  ): { success: true; data: Output } | { success: false; error: z.ZodError };
+};
+
+// Single source of truth for step-form wiring: live validation
+// ("na bieżąco") runs on every change/blur, display stays gated by
+// isFieldInvalid (touched). Replaces the per-form triple
+// asFormValidator onChange/onBlur/onSubmit repetition.
+export function stepFormValidators<TFormValues>(
+  schema: StandardSchemaV1<unknown, unknown>,
+): {
+  onChange: StandardSchemaV1<TFormValues, unknown>;
+  onBlur: StandardSchemaV1<TFormValues, unknown>;
+  onSubmit: StandardSchemaV1<TFormValues, unknown>;
+} {
+  return {
+    onChange: asFormValidator<TFormValues>(schema),
+    onBlur: asFormValidator<TFormValues>(schema),
+    onSubmit: asFormValidator<TFormValues>(schema),
+  };
+}
+
+// Single submit handler for step forms: safeParse the values and forward
+// typed data only on success. Replaces the per-form parseFormSubmit +
+// success-check repetition.
+export function submitStepForm<Output>(
+  schema: StepFormSchema<Output>,
+  value: unknown,
+  onSubmit: (data: Output) => void,
+): void {
+  const parsed = schema.safeParse(value);
+
+  if (!parsed.success) {
+    return;
+  }
+
+  onSubmit(parsed.data);
+}

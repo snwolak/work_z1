@@ -3,16 +3,12 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import { MOCK_PRODUCTS } from "@/lib/mock-products";
-import type { Product } from "@/lib/product";
+import { isProductList, type Product } from "@/lib/product";
 
 type ProductStore = {
   products: Product[];
   addProduct: (product: Product) => void;
 };
-
-function isProductList(value: unknown): value is Product[] {
-  return Array.isArray(value);
-}
 
 export const useProductStore = create<ProductStore>()(
   persist(

@@ -46,13 +46,13 @@ export function useProductPagination() {
 
   // Handlers read getState() for a fresh count: closures may hold products
   // from before the write they respond to (e.g. goToLastPage after add).
-  function changePage(nextPage: number) {
+  function changePage(nextPage: number): void {
     const count = useProductStore.getState().products.length;
 
     void setRequestedPage(clampPage(nextPage, pageCountForCount(count)));
   }
 
-  function goToLastPage() {
+  function goToLastPage(): void {
     const count = useProductStore.getState().products.length;
 
     void setRequestedPage(pageCountForCount(count));

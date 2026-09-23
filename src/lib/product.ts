@@ -68,6 +68,37 @@ export const PRODUCT_VAT_RATE_LABELS: Record<ProductVatRate, string> = {
   23: "23%",
 };
 
+export type ProductSelectItem = {
+  value: string;
+  label: string;
+};
+
+export function toSelectItems<TValue extends string>(
+  values: readonly TValue[],
+  labels: Record<TValue, string>,
+): ProductSelectItem[] {
+  return values.map((value) => ({ value, label: labels[value] }));
+}
+
+export const PRODUCT_MANUFACTURER_ITEMS: ProductSelectItem[] = toSelectItems(
+  PRODUCT_MANUFACTURERS,
+  PRODUCT_MANUFACTURER_LABELS,
+);
+
+export const PRODUCT_CATEGORY_ITEMS: ProductSelectItem[] = toSelectItems(
+  PRODUCT_CATEGORIES,
+  PRODUCT_CATEGORY_LABELS,
+);
+
+export const PRODUCT_CURRENCY_ITEMS: ProductSelectItem[] =
+  PRODUCT_CURRENCIES.map((value) => ({ value, label: value }));
+
+export const PRODUCT_VAT_RATE_ITEMS: ProductSelectItem[] =
+  PRODUCT_VAT_RATES.map((value) => ({
+    value: String(value),
+    label: PRODUCT_VAT_RATE_LABELS[value],
+  }));
+
 const DECIMAL_SEPARATOR = ",";
 const PRICE_DECIMALS = 2;
 const PRICE_TOLERANCE = 0.005;
@@ -135,22 +166,33 @@ export function isProductVatRate(value: unknown): value is ProductVatRate {
   );
 }
 
-function toNumberInput(value: unknown) {
+function toNumberInput(value: unknown): unknown {
+  if (typeof value === "number") {
+    return value;
+  }
+
   if (typeof value !== "string") {
     return value;
   }
 
   const trimmed = value.trim();
 
-  return trimmed === "" ? undefined : trimmed.replace(DECIMAL_SEPARATOR, ".");
+  if (trimmed === "") {
+    return undefined;
+  }
+
+  const normalized = trimmed.replace(DECIMAL_SEPARATOR, ".");
+  const parsed = Number(normalized);
+
+  return Number.isNaN(parsed) ? normalized : parsed;
 }
 
 function numberField(params: {
   invalid: string;
-  integer?: string;
-  nonnegative?: string;
-}) {
-  let schema = z.coerce.number({ message: params.invalid });
+  integer?: string | undefined;
+  nonnegative?: string | undefined;
+}): z.ZodType<number, unknown> {
+  let schema = z.number({ message: params.invalid });
 
   if (params.integer) {
     schema = schema.int(params.integer);
@@ -160,17 +202,21 @@ function numberField(params: {
     schema = schema.nonnegative(params.nonnegative);
   }
 
+  // Single coercion point: toNumberInput normalizes strings to numbers,
+  // then a plain z.number validates. No z.coerce here on purpose.
   return z.preprocess(toNumberInput, schema);
 }
 
-function roundToDecimals(value: number, decimals: number) {
+function roundToDecimals(value: number, decimals: number): number {
   const factor = 10 ** decimals;
 
   return Math.round(value * factor) / factor;
 }
 
-const priceAmountSchema = (invalid: string, nonnegative: string) =>
-  numberField({ invalid, nonnegative });
+const priceAmountSchema = (
+  invalid: string,
+  nonnegative: string,
+): z.ZodType<number, unknown> => numberField({ invalid, nonnegative });
 
 export const productBasicInfoSchema = z.object({
   name: z
@@ -219,7 +265,7 @@ const productPriceObject = z.object({
 function validatePriceConsistency(
   data: z.infer<typeof productPriceObject>,
   ctx: z.RefinementCtx,
-) {
+): void {
   const expectedGrossPrice = calcGrossPrice(data.netPrice, data.vatRate);
   const actualGrossPrice = roundToDecimals(data.grossPrice, PRICE_DECIMALS);
 
@@ -271,7 +317,7 @@ const productAvailabilityObject = z
 function validateOrderQuantities(
   data: z.infer<typeof orderQuantityObject>,
   ctx: z.RefinementCtx,
-) {
+): void {
   if (data.minOrderQuantity > data.maxOrderQuantity) {
     ctx.addIssue({
       code: "custom",
@@ -298,3 +344,11 @@ export type ProductBasicInfo = z.infer<typeof productBasicInfoSchema>;
 export type ProductPrice = z.infer<typeof productPriceSchema>;
 export type ProductAvailability = z.infer<typeof productAvailabilitySchema>;
 export type Product = z.infer<typeof productSchema>;
+
+export function isProduct(value: unknown): value is Product {
+  return productSchema.safeParse(value).success;
+}
+
+export function isProductList(value: unknown): value is Product[] {
+  return Array.isArray(value) && value.every(isProduct);
+}

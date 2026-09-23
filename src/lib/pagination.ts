@@ -2,11 +2,11 @@ export const PRODUCT_PAGE_SIZE = 5;
 
 const MAX_VISIBLE_PAGES = 7;
 
-export function pageCountForCount(totalCount: number) {
+export function pageCountForCount(totalCount: number): number {
   return Math.max(1, Math.ceil(totalCount / PRODUCT_PAGE_SIZE));
 }
 
-export function clampPage(requestedPage: number, pageCount: number) {
+export function clampPage(requestedPage: number, pageCount: number): number {
   return Math.min(Math.max(requestedPage, 1), pageCount);
 }
 

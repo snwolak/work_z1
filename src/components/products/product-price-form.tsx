@@ -17,9 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  PRODUCT_CURRENCIES,
-  PRODUCT_VAT_RATE_LABELS,
-  PRODUCT_VAT_RATES,
+  PRODUCT_CURRENCY_ITEMS,
+  PRODUCT_VAT_RATE_ITEMS,
   isProductCurrency,
   isProductVatRate,
   productPriceSchema,
@@ -27,7 +26,7 @@ import {
   type ProductPrice,
   type ProductVatRate,
 } from "@/lib/product";
-import { asFormValidator, parseFormSubmit } from "@/lib/validate-form";
+import { stepFormValidators, submitStepForm } from "@/lib/validate-form";
 import { isFieldInvalid } from "@/components/products/is-field-invalid";
 import { useProductPriceSync } from "@/components/products/use-product-price-sync";
 
@@ -47,16 +46,6 @@ const defaultValues: ProductPriceFormValues = {
   currency: "PLN",
 };
 
-const VAT_ITEMS = PRODUCT_VAT_RATES.map((value) => ({
-  value: String(value),
-  label: PRODUCT_VAT_RATE_LABELS[value],
-}));
-
-const CURRENCY_ITEMS = PRODUCT_CURRENCIES.map((value) => ({
-  value,
-  label: value,
-}));
-
 type ProductPriceFormProps = {
   onSubmit: (value: ProductPrice) => void;
 };
@@ -64,20 +53,9 @@ type ProductPriceFormProps = {
 export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
   const form = useForm({
     defaultValues,
-    validators: {
-      // Spec: live validation ("na bieżąco"). See basic-info form.
-      onChange: asFormValidator<ProductPriceFormValues>(productPriceSchema),
-      onBlur: asFormValidator<ProductPriceFormValues>(productPriceSchema),
-      onSubmit: asFormValidator<ProductPriceFormValues>(productPriceSchema),
-    },
+    validators: stepFormValidators<ProductPriceFormValues>(productPriceSchema),
     onSubmit: ({ value }) => {
-      const parsed = parseFormSubmit(productPriceSchema, value);
-
-      if (!parsed.success) {
-        return;
-      }
-
-      onSubmit(parsed.data);
+      submitStepForm(productPriceSchema, value, onSubmit);
     },
   });
   const priceSync = useProductPriceSync();
@@ -209,7 +187,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Stawka VAT</FieldLabel>
                   <Select
-                    items={VAT_ITEMS}
+                    items={PRODUCT_VAT_RATE_ITEMS}
                     value={String(field.state.value)}
                     onValueChange={(selected) => {
                       handleVatRateChange(selected);
@@ -226,9 +204,9 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                       <SelectValue placeholder="Wybierz stawkę" />
                     </SelectTrigger>
                     <SelectContent>
-                      {PRODUCT_VAT_RATES.map((rate) => (
-                        <SelectItem key={rate} value={String(rate)}>
-                          {PRODUCT_VAT_RATE_LABELS[rate]}
+                      {PRODUCT_VAT_RATE_ITEMS.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -249,7 +227,7 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Waluta</FieldLabel>
                   <Select
-                    items={CURRENCY_ITEMS}
+                    items={PRODUCT_CURRENCY_ITEMS}
                     value={field.state.value}
                     onValueChange={(value) => {
                       if (isProductCurrency(value)) {
@@ -268,9 +246,9 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
                       <SelectValue placeholder="Wybierz walutę" />
                     </SelectTrigger>
                     <SelectContent>
-                      {PRODUCT_CURRENCIES.map((currency) => (
-                        <SelectItem key={currency} value={currency}>
-                          {currency}
+                      {PRODUCT_CURRENCY_ITEMS.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

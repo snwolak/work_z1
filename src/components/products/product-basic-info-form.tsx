@@ -19,12 +19,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
-  PRODUCT_CATEGORIES,
-  PRODUCT_CATEGORY_LABELS,
+  PRODUCT_CATEGORY_ITEMS,
   PRODUCT_FEATURES,
   PRODUCT_FEATURE_LABELS,
-  PRODUCT_MANUFACTURERS,
-  PRODUCT_MANUFACTURER_LABELS,
+  PRODUCT_MANUFACTURER_ITEMS,
   isProductCategory,
   isProductFeature,
   isProductManufacturer,
@@ -34,7 +32,7 @@ import {
   type ProductFeature,
   type ProductManufacturer,
 } from "@/lib/product";
-import { asFormValidator, parseFormSubmit } from "@/lib/validate-form";
+import { stepFormValidators, submitStepForm } from "@/lib/validate-form";
 import { isFieldInvalid } from "@/components/products/is-field-invalid";
 
 export const PRODUCT_BASIC_INFO_FORM_ID = "product-basic-info-form";
@@ -56,16 +54,6 @@ const defaultValues: ProductBasicInfoFormValues = {
   features: [],
 };
 
-const MANUFACTURER_ITEMS = PRODUCT_MANUFACTURERS.map((value) => ({
-  value,
-  label: PRODUCT_MANUFACTURER_LABELS[value],
-}));
-
-const CATEGORY_ITEMS = PRODUCT_CATEGORIES.map((value) => ({
-  value,
-  label: PRODUCT_CATEGORY_LABELS[value],
-}));
-
 type ProductBasicInfoFormProps = {
   onSubmit: (value: ProductBasicInfo) => void;
 };
@@ -73,28 +61,11 @@ type ProductBasicInfoFormProps = {
 export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
   const form = useForm({
     defaultValues,
-    validators: {
-      // Spec: live validation ("na bieżąco"). Runs on every change/blur;
-      // display stays gated by isFieldInvalid (touched),
-      // so pristine fields don't flash errors mid-typing.
-      onChange: asFormValidator<ProductBasicInfoFormValues>(
-        productBasicInfoSchema,
-      ),
-      onBlur: asFormValidator<ProductBasicInfoFormValues>(
-        productBasicInfoSchema,
-      ),
-      onSubmit: asFormValidator<ProductBasicInfoFormValues>(
-        productBasicInfoSchema,
-      ),
-    },
+    validators: stepFormValidators<ProductBasicInfoFormValues>(
+      productBasicInfoSchema,
+    ),
     onSubmit: ({ value }) => {
-      const parsed = parseFormSubmit(productBasicInfoSchema, value);
-
-      if (!parsed.success) {
-        return;
-      }
-
-      onSubmit(parsed.data);
+      submitStepForm(productBasicInfoSchema, value, onSubmit);
     },
   });
 
@@ -206,7 +177,7 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Producent</FieldLabel>
                   <Select
-                    items={MANUFACTURER_ITEMS}
+                    items={PRODUCT_MANUFACTURER_ITEMS}
                     value={field.state.value || null}
                     onValueChange={(value) => {
                       if (isProductManufacturer(value)) {
@@ -225,9 +196,9 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                       <SelectValue placeholder="Wybierz producenta" />
                     </SelectTrigger>
                     <SelectContent>
-                      {PRODUCT_MANUFACTURERS.map((manufacturer) => (
-                        <SelectItem key={manufacturer} value={manufacturer}>
-                          {PRODUCT_MANUFACTURER_LABELS[manufacturer]}
+                      {PRODUCT_MANUFACTURER_ITEMS.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -248,7 +219,7 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Kategoria</FieldLabel>
                   <Select
-                    items={CATEGORY_ITEMS}
+                    items={PRODUCT_CATEGORY_ITEMS}
                     value={field.state.value || null}
                     onValueChange={(value) => {
                       if (isProductCategory(value)) {
@@ -267,9 +238,9 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
                       <SelectValue placeholder="Wybierz kategorię" />
                     </SelectTrigger>
                     <SelectContent>
-                      {PRODUCT_CATEGORIES.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {PRODUCT_CATEGORY_LABELS[category]}
+                      {PRODUCT_CATEGORY_ITEMS.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
