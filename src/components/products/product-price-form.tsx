@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import { useForm } from "@tanstack/react-form";
 
 import {
@@ -21,17 +20,15 @@ import {
   PRODUCT_CURRENCIES,
   PRODUCT_VAT_RATE_LABELS,
   PRODUCT_VAT_RATES,
-  calcGrossPrice,
-  calcNetPrice,
   isProductCurrency,
   isProductVatRate,
-  parseDecimalInput,
   productPriceSchema,
   type ProductCurrency,
   type ProductPrice,
   type ProductVatRate,
 } from "@/lib/product";
 import { asFormValidator } from "@/lib/validate-form";
+import { useProductPriceSync } from "@/components/products/use-product-price-sync";
 
 export const PRODUCT_PRICE_FORM_ID = "product-price-form";
 
@@ -77,30 +74,23 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
       }
     },
   });
-  const lastEditedPrice = useRef<"netPrice" | "grossPrice">("netPrice");
+  const priceSync = useProductPriceSync();
 
   function handleNetPriceChange(rawNetPrice: string) {
     const vatRate = form.getFieldValue("vatRate");
-    lastEditedPrice.current = "netPrice";
+    const peer = priceSync.onNetPriceChange(rawNetPrice, vatRate);
 
-    const netPrice = parseDecimalInput(rawNetPrice);
-
-    if (netPrice !== null) {
-      form.setFieldValue(
-        "grossPrice",
-        String(calcGrossPrice(netPrice, vatRate)),
-      );
+    if (peer !== null) {
+      form.setFieldValue("grossPrice", peer);
     }
   }
 
   function handleGrossPriceChange(rawGrossPrice: string) {
     const vatRate = form.getFieldValue("vatRate");
-    lastEditedPrice.current = "grossPrice";
+    const peer = priceSync.onGrossPriceChange(rawGrossPrice, vatRate);
 
-    const grossPrice = parseDecimalInput(rawGrossPrice);
-
-    if (grossPrice !== null) {
-      form.setFieldValue("netPrice", String(calcNetPrice(grossPrice, vatRate)));
+    if (peer !== null) {
+      form.setFieldValue("netPrice", peer);
     }
   }
 
@@ -117,24 +107,14 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
 
     form.setFieldValue("vatRate", vatRate);
 
-    if (lastEditedPrice.current === "grossPrice") {
-      const grossPrice = parseDecimalInput(form.getFieldValue("grossPrice"));
+    const update = priceSync.onVatRateChange({
+      netRaw: form.getFieldValue("netPrice"),
+      grossRaw: form.getFieldValue("grossPrice"),
+      vatRate,
+    });
 
-      if (grossPrice !== null) {
-        form.setFieldValue(
-          "netPrice",
-          String(calcNetPrice(grossPrice, vatRate)),
-        );
-      }
-    } else {
-      const netPrice = parseDecimalInput(form.getFieldValue("netPrice"));
-
-      if (netPrice !== null) {
-        form.setFieldValue(
-          "grossPrice",
-          String(calcGrossPrice(netPrice, vatRate)),
-        );
-      }
+    if (update) {
+      form.setFieldValue(update.name, update.value);
     }
   }
 
