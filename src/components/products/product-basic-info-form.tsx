@@ -78,11 +78,13 @@ export function ProductBasicInfoForm({ onSubmit }: ProductBasicInfoFormProps) {
       ),
     },
     onSubmit: ({ value }) => {
-      const data = parseFormSubmit(productBasicInfoSchema, value);
+      const parsed = parseFormSubmit(productBasicInfoSchema, value);
 
-      if (data !== null) {
-        onSubmit(data);
+      if (!parsed.success) {
+        return;
       }
+
+      onSubmit(parsed.data);
     },
   });
 

@@ -1,29 +1,39 @@
+import type { StandardSchemaV1 } from "@tanstack/react-form";
 import type { z } from "zod";
 
 // TanStack Form types submit validators as StandardSchemaV1<TFormValues>,
 // so the schema's declared input must match the form values. Zod schemas
 // built with coercion or preprocessing declare `unknown` inputs even though
 // they accept any value at runtime, which makes them unassignable directly.
-// This adapter re-declares the input type for validator position only; it is
-// sound because validation input is always `unknown`-compatible at runtime.
+// This adapter exposes the same `~standard.validate` under the form's input
+// type. It is sound because validation input is always `unknown`-compatible
+// at runtime, and `types` is omitted (optional in StandardSchemaV1), so no
+// type assertion is needed.
 export function asFormValidator<TFormValues>(
-  schema: z.ZodType<unknown, unknown>,
-): z.ZodType<unknown, TFormValues> {
-  return schema as z.ZodType<unknown, TFormValues>;
+  schema: StandardSchemaV1<unknown, unknown>,
+): StandardSchemaV1<TFormValues, unknown> {
+  const standard = schema["~standard"];
+
+  return {
+    "~standard": {
+      version: 1,
+      vendor: standard.vendor,
+      validate: standard.validate,
+    },
+  };
 }
 
 // Submit gate for step forms: the schema already ran as the TanStack
-// onSubmit validator; this narrows the validated values to domain output.
-// Returns null when invalid, so callers forward data with one check.
+// onSubmit validator (field errors are displayed by the form); this returns
+// the full safeParse result so callers keep error details instead of
+// receiving a swallowed null.
 export function parseFormSubmit<Output>(
   schema: {
     safeParse(
       value: unknown,
-    ): { success: true; data: Output } | { success: false; error: unknown };
+    ): { success: true; data: Output } | { success: false; error: z.ZodError };
   },
   value: unknown,
-): Output | null {
-  const parsed = schema.safeParse(value);
-
-  return parsed.success ? parsed.data : null;
+): { success: true; data: Output } | { success: false; error: z.ZodError } {
+  return schema.safeParse(value);
 }

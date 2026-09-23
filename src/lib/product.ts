@@ -206,7 +206,11 @@ const productPriceObject = z.object({
     "Podaj prawidłową cenę brutto.",
     "Cena brutto nie może być ujemna.",
   ),
-  vatRate: z.literal(PRODUCT_VAT_RATES, "Wybierz prawidłową stawkę VAT."),
+  // Numbers on purpose: z.enum rejects numeric options at runtime in Zod v4
+  // (even valid rates fail), while z.literal(list) accepts 0 | 5 | 8 | 23.
+  vatRate: z.literal(PRODUCT_VAT_RATES, {
+    message: "Wybierz prawidłową stawkę VAT.",
+  }),
   currency: z.enum(PRODUCT_CURRENCIES, {
     message: "Wybierz prawidłową walutę.",
   }),

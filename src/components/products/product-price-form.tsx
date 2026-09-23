@@ -67,11 +67,13 @@ export function ProductPriceForm({ onSubmit }: ProductPriceFormProps) {
       onSubmit: asFormValidator<ProductPriceFormValues>(productPriceSchema),
     },
     onSubmit: ({ value }) => {
-      const data = parseFormSubmit(productPriceSchema, value);
+      const parsed = parseFormSubmit(productPriceSchema, value);
 
-      if (data !== null) {
-        onSubmit(data);
+      if (!parsed.success) {
+        return;
       }
+
+      onSubmit(parsed.data);
     },
   });
   const priceSync = useProductPriceSync();

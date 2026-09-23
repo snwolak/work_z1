@@ -50,11 +50,13 @@ export function ProductAvailabilityForm({
       ),
     },
     onSubmit: ({ value }) => {
-      const data = parseFormSubmit(productAvailabilitySchema, value);
+      const parsed = parseFormSubmit(productAvailabilitySchema, value);
 
-      if (data !== null) {
-        onSubmit(data);
+      if (!parsed.success) {
+        return;
       }
+
+      onSubmit(parsed.data);
     },
   });
 
