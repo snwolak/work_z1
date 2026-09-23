@@ -56,8 +56,8 @@ export function AddProductDialog({
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
 
         <Dialog.Popup className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-card md:inset-auto md:top-1/2 md:left-1/2 md:max-h-[calc(100dvh-2rem)] md:w-[720px] md:max-w-[calc(100vw-2rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[14px] md:border md:border-black/10">
-          <div className="px-4 pt-6 md:border-b md:border-[#E5E5E5] md:pb-6">
-            <div className="flex items-center justify-between gap-2">
+          <div className="relative shrink-0 px-4 pt-6 pb-4 md:flex md:h-16 md:items-center md:border-b md:border-[#E5E5E5] md:py-0">
+            <div className="flex flex-1 items-center justify-between gap-2">
               <Dialog.Title className="text-base leading-none font-medium text-foreground">
                 Dodaj nowy produkt
               </Dialog.Title>
@@ -72,7 +72,7 @@ export function AddProductDialog({
 
             <div
               aria-hidden="true"
-              className="mt-4 h-px bg-[#E5E5E5] md:hidden"
+              className="absolute inset-x-4 bottom-0 h-px bg-[#E5E5E5] md:hidden"
             />
           </div>
 
@@ -86,7 +86,7 @@ export function AddProductDialog({
                   <li
                     key={wizardStep.title}
                     aria-current={isCurrent ? "step" : undefined}
-                    className="flex flex-1 items-start gap-4 md:items-center"
+                    className="flex flex-1 md:flex-none items-start gap-4 md:items-center"
                   >
                     {index > 0 ? (
                       <span
@@ -141,7 +141,7 @@ export function AddProductDialog({
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 py-5">
+          <div className="flex-1 overflow-y-auto px-4 py-4 md:py-5">
             <div hidden={step !== 0}>
               <ProductBasicInfoForm
                 key={`basic-${formResetKey}`}

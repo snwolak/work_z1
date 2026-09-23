@@ -86,11 +86,11 @@ export function ProductAvailabilityForm({
           )}
         </form.Field>
 
-        <Separator className="bg-[#E5E5E5]" />
+        <Separator className="bg-[#E5E5E5] md:-mt-1" />
 
         <form.Field name="isLimited">
           {(field) => (
-            <Field orientation="horizontal" className="items-center gap-2">
+            <Field orientation="horizontal" className="items-center">
               <Checkbox
                 id={field.name}
                 name={field.name}
